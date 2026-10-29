@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from './components/Navbar';
+import MobileBottomNav from './components/MobileBottomNav';
 import HomeView from './views/HomeView';
 import GenresView from './views/GenresView';
 import PopularView from './views/PopularView';
@@ -19,6 +20,7 @@ import {
   getSavedTheme,
   saveTheme
 } from './services/storage';
+import { App as CapApp } from '@capacitor/app';
 
 export default function App() {
   const [currentView, setCurrentView] = useState('home');
@@ -43,11 +45,42 @@ export default function App() {
   // Apply dynamic accent color
   useEffect(() => {
     document.documentElement.style.setProperty('--accent-color', playerConfig.accentColor);
-    // calculate subtle glow
     document.documentElement.style.setProperty('--accent-glow', `${playerConfig.accentColor}55`);
     document.documentElement.style.setProperty('--accent-soft', `${playerConfig.accentColor}18`);
     savePlayerConfig({ accentColor: playerConfig.accentColor });
   }, [playerConfig.accentColor]);
+
+  // Hardware Back Button handling for Dedicated Android App
+  useEffect(() => {
+    let removeListener = null;
+
+    const initBackButton = async () => {
+      try {
+        const handle = await CapApp.addListener('backButton', () => {
+          if (isSearchOpen) {
+            setIsSearchOpen(false);
+          } else if (detailAnime) {
+            setDetailAnime(null);
+          } else if (currentView === 'player') {
+            setCurrentView('home');
+          } else if (currentView !== 'home') {
+            setCurrentView('home');
+          } else {
+            CapApp.exitApp();
+          }
+        });
+        removeListener = handle.remove;
+      } catch (err) {
+        // Ignored when running in standard web browser
+      }
+    };
+
+    initBackButton();
+
+    return () => {
+      if (removeListener) removeListener();
+    };
+  }, [isSearchOpen, detailAnime, currentView]);
 
   // Global keyboard shortcut for search
   useEffect(() => {
@@ -61,36 +94,36 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleWatchAnime = (anime, episode = 1, initialTime = 0) => {
+  const handleWatchAnime = useCallback((anime, episode = 1, initialTime = 0) => {
     setActiveAnime(anime);
     setActiveEpisode(episode);
     setActiveTime(initialTime);
     setCurrentView('player');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, []);
 
-  const handleResumeWatching = (item, episode, time) => {
+  const handleResumeWatching = useCallback((item, episode, time) => {
     setActiveAnime(item);
     setActiveEpisode(episode || 1);
     setActiveTime(time || 0);
     setCurrentView('player');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, []);
 
-  const handleProgressUpdate = (progressData) => {
+  const handleProgressUpdate = useCallback((progressData) => {
     const updated = updateContinueWatching(progressData);
     setContinueWatchingList(updated);
-  };
+  }, []);
 
-  const handleRemoveContinueWatching = (id) => {
+  const handleRemoveContinueWatching = useCallback((id) => {
     const updated = removeContinueWatching(id);
     setContinueWatchingList(updated);
-  };
+  }, []);
 
-  const handleToggleWatchlist = (anime) => {
+  const handleToggleWatchlist = useCallback((anime) => {
     const { list } = toggleWatchlist(anime);
     setWatchlist(list);
-  };
+  }, []);
 
   const isBookmarked = (id) => watchlist.some(item => item.id === id);
 
@@ -132,6 +165,10 @@ export default function App() {
             onToggleWatchlist={handleToggleWatchlist}
             isBookmarked={isBookmarked(activeAnime.id)}
             onWatchAnime={handleWatchAnime}
+            onAnimeChange={(newAnime, ep) => {
+              setActiveAnime(newAnime);
+              setActiveEpisode(ep || 1);
+            }}
           />
         )}
 
@@ -165,6 +202,13 @@ export default function App() {
         )}
       </main>
 
+      {/* Dedicated Mobile Bottom Navigation Bar */}
+      <MobileBottomNav
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+        watchlistCount={watchlist.length}
+      />
+
       {/* Anime Detail Modal */}
       {detailAnime && (
         <AnimeDetailModal
@@ -188,22 +232,22 @@ export default function App() {
       />
 
       {/* Footer */}
-      <footer style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', padding: '2.5rem 1.5rem', marginTop: 'auto' }}>
-        <div style={{ maxWidth: '1440px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1.5rem' }}>
+      <footer className="app-footer">
+        <div className="footer-inner">
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 900, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '1.2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 900, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '1.15rem' }}>
               <span style={{ color: 'var(--accent-color)' }}>⚡ OTAKU</span>
-              <span>STREAM</span>
+              <span>PLAY</span>
             </div>
-            <p style={{ color: 'var(--text-dim)', fontSize: '0.8rem', marginTop: '0.4rem', fontFamily: 'var(--font-mono)' }}>
-              Next-generation web player powered by ZokoAnime embed engine & AniList metadata.
+            <p style={{ color: 'var(--text-dim)', fontSize: '0.8rem', marginTop: '0.35rem', fontFamily: 'var(--font-mono)' }}>
+              Dedicated anime streaming app with ZokoAnime adaptive engine & AniList metadata.
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-            <span style={{ fontFamily: 'var(--font-mono)' }}>HLS Stream: Active</span>
-            <span style={{ fontFamily: 'var(--font-mono)' }}>Multi-Track: SUB / HSUB / DUB</span>
-            <span style={{ fontFamily: 'var(--font-mono)' }}>Auto-Skip: Supported</span>
+          <div className="footer-tags">
+            <span>HLS Stream: Active</span>
+            <span>Multi-Track: SUB / HSUB / DUB</span>
+            <span>Auto-Skip: Ready</span>
           </div>
         </div>
       </footer>

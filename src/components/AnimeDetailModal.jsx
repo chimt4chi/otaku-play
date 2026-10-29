@@ -21,7 +21,7 @@ export default function AnimeDetailModal({
         setDetails(fullData);
         setLoading(false);
       }
-    }).catch(err => {
+    }).catch(() => {
       if (active) {
         setLoading(false);
       }
@@ -40,53 +40,40 @@ export default function AnimeDetailModal({
   const recommendations = details.recommendations?.nodes?.map(n => n.mediaRecommendation).filter(Boolean) || [];
 
   return (
-    <div className="search-modal-backdrop" onClick={onClose} style={{ alignItems: 'center' }}>
+    <div className="search-modal-backdrop" onClick={onClose}>
       <div
-        className="search-modal-box"
+        className="search-modal-box detail-modal-box"
         onClick={e => e.stopPropagation()}
-        style={{ maxWidth: '900px', maxHeight: '90vh' }}
       >
         {/* Header with Banner Image */}
-        <div style={{ position: 'relative', width: '100%', height: '220px', overflow: 'hidden' }}>
+        <div className="detail-modal-banner-wrap">
           <img
             src={banner}
             alt={title}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            className="detail-modal-banner"
           />
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'linear-gradient(to bottom, rgba(14,17,26,0.3) 0%, var(--bg-surface) 100%)'
-            }}
-          />
+          <div className="detail-modal-banner-gradient" />
 
           <button
-            className="icon-btn"
+            className="icon-btn detail-modal-close-btn"
             onClick={onClose}
-            style={{ position: 'absolute', top: '1rem', right: '1rem', zIndex: 10 }}
+            aria-label="Close modal"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Content Body */}
-        <div style={{ padding: '0 2rem 2rem', overflowY: 'auto', marginTop: '-60px', position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <div className="detail-modal-body">
+          <div className="detail-modal-intro">
             <img
               src={poster}
               alt={title}
-              style={{
-                width: '140px',
-                borderRadius: 'var(--radius-md)',
-                border: '2px solid var(--border-card)',
-                boxShadow: 'var(--shadow-md)',
-                backgroundColor: 'var(--bg-main)'
-              }}
+              className="detail-modal-poster"
             />
 
-            <div style={{ flex: 1, minWidth: '260px', marginTop: '60px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
+            <div className="detail-modal-info">
+              <div className="detail-modal-badges">
                 {score && (
                   <span className="badge badge-score">
                     <Star size={12} fill="currentColor" />
@@ -98,20 +85,19 @@ export default function AnimeDetailModal({
                 {details.status && <span className="badge">{details.status}</span>}
               </div>
 
-              <h2 style={{ fontSize: '1.6rem', fontWeight: 800, textTransform: 'uppercase' }}>
+              <h2 className="detail-modal-title">
                 {title}
               </h2>
               {details.title?.native && (
-                <div style={{ color: 'var(--text-dim)', fontSize: '0.85rem', fontFamily: 'var(--font-mono)', marginBottom: '1rem' }}>
+                <div className="detail-modal-native">
                   {details.title.native}
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+              <div className="detail-modal-actions">
                 <button
                   className="btn-primary"
                   onClick={() => onWatch(details, 1)}
-                  style={{ padding: '0.65rem 1.4rem', fontSize: '0.85rem' }}
                 >
                   <Play size={16} fill="currentColor" />
                   <span>Start Watching</span>
@@ -120,7 +106,6 @@ export default function AnimeDetailModal({
                 <button
                   className="btn-secondary"
                   onClick={() => onToggleWatchlist(details)}
-                  style={{ padding: '0.65rem 1.2rem', fontSize: '0.85rem' }}
                 >
                   <Bookmark size={16} fill={isBookmarked ? 'currentColor' : 'none'} color={isBookmarked ? 'var(--accent-color)' : 'inherit'} />
                   <span>{isBookmarked ? 'In Watchlist' : 'Watchlist'}</span>
@@ -130,18 +115,18 @@ export default function AnimeDetailModal({
           </div>
 
           {/* Synopsis */}
-          <div style={{ marginTop: '1.5rem' }}>
-            <h4 style={{ fontSize: '1rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>
+          <div className="detail-modal-section">
+            <h4 className="detail-modal-heading">
               Synopsis
             </h4>
-            <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--text-main)' }}>
+            <p className="detail-modal-synopsis">
               {details.description?.replace(/<[^>]*>?/gm, '') || 'No synopsis available for this title.'}
             </p>
           </div>
 
           {/* Genres */}
           {details.genres && (
-            <div style={{ marginTop: '1.25rem' }}>
+            <div className="detail-modal-section">
               <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                 {details.genres.map(genre => (
                   <span key={genre} className="badge" style={{ fontSize: '0.72rem' }}>
@@ -152,10 +137,10 @@ export default function AnimeDetailModal({
             </div>
           )}
 
-          {/* Characters and Voice Actors Section */}
+          {/* Characters & Voice Actors Section */}
           {characters.length > 0 && (
-            <div style={{ marginTop: '2rem' }}>
-              <h4 style={{ fontSize: '1rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className="detail-modal-section">
+              <h4 className="detail-modal-heading">
                 <UserCheck size={16} color="var(--accent-color)" />
                 <span>Characters & Voice Actors</span>
               </h4>
@@ -169,6 +154,7 @@ export default function AnimeDetailModal({
                         src={char.image?.large}
                         alt={char.name?.full}
                         className="char-avatar-img"
+                        loading="lazy"
                       />
                       <div className="char-info">
                         <div className="char-role-badge">{role}</div>
@@ -183,7 +169,7 @@ export default function AnimeDetailModal({
                             <div className="va-label">Japanese VA</div>
                           </div>
                           {va.image?.large && (
-                            <img src={va.image.large} alt={va.name?.full} className="va-avatar" />
+                            <img src={va.image.large} alt={va.name?.full} className="va-avatar" loading="lazy" />
                           )}
                         </div>
                       )}
@@ -196,8 +182,8 @@ export default function AnimeDetailModal({
 
           {/* Recommendations */}
           {recommendations.length > 0 && (
-            <div style={{ marginTop: '2rem' }}>
-              <h4 style={{ fontSize: '1rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '1rem' }}>
+            <div className="detail-modal-section">
+              <h4 className="detail-modal-heading">
                 You Might Also Like
               </h4>
               <div className="carousel-row">
