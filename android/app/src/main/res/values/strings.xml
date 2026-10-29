@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">OtakuPlay</string>
+    <string name="title_activity_main">OtakuPlay</string>
+    <string name="package_name">com.otakuplay.app</string>
+    <string name="custom_url_scheme">com.otakuplay.app</string>
+</resources>
