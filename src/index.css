@@ -2423,3 +2423,1116 @@ button {
   }
 }
 
+
+
+/* ==========================================================================
+   AMAZON PRIME VIDEO & X-RAY CINEMA PLAYER SYSTEM
+   ========================================================================== */
+
+.prime-player-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background-color: #030407;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.75), 0 0 40px rgba(53, 213, 191, 0.08);
+  user-select: none;
+  font-family: var(--font-body);
+}
+
+.prime-player-wrapper:fullscreen,
+.prime-player-wrapper:-webkit-full-screen {
+  border-radius: 0;
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+}
+
+.prime-player-wrapper.theater {
+  border-radius: 0;
+  max-height: 82vh;
+}
+
+/* Underlying Video Stream Iframe */
+.prime-video-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #000;
+  z-index: 1;
+}
+
+/* Loading Scrim */
+.prime-loading-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 8, 13, 0.92);
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  backdrop-filter: blur(8px);
+}
+
+.prime-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3.5px solid rgba(53, 213, 191, 0.18);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: spin 0.85s linear infinite;
+}
+
+.prime-loading-label {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+/* Double-Tap 10s Skip Indicator */
+.prime-doubletap-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(14, 17, 26, 0.85);
+  border: 1px solid rgba(53, 213, 191, 0.4);
+  color: #fff;
+  padding: 1.25rem 1.75rem;
+  border-radius: var(--radius-full);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.9rem;
+  z-index: 25;
+  pointer-events: none;
+  animation: pulseRipple 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(8px);
+}
+
+.prime-doubletap-indicator.left {
+  left: 15%;
+}
+
+.prime-doubletap-indicator.right {
+  right: 15%;
+}
+
+@keyframes pulseRipple {
+  0% { transform: translateY(-50%) scale(0.8); opacity: 0; }
+  50% { transform: translateY(-50%) scale(1.1); opacity: 1; }
+  100% { transform: translateY(-50%) scale(1); opacity: 0; }
+}
+
+/* Modern Prime HUD Overlay */
+.prime-hud-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+  background: radial-gradient(circle at center, transparent 35%, rgba(0, 0, 0, 0.6) 100%),
+              linear-gradient(to bottom, rgba(7, 8, 13, 0.88) 0%, transparent 25%, transparent 70%, rgba(7, 8, 13, 0.94) 100%);
+}
+
+.prime-player-wrapper.controls-active .prime-hud-overlay,
+.prime-hud-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Prime Top Header Bar */
+.prime-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(1.1rem, var(--sat)) max(1.5rem, var(--sar)) 1.5rem max(1.5rem, var(--sal));
+  gap: 1rem;
+}
+
+.prime-top-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.prime-icon-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  backdrop-filter: blur(12px);
+  flex-shrink: 0;
+}
+
+.prime-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: scale(1.05);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.prime-icon-btn.active-bookmark {
+  color: var(--accent-color);
+  border-color: rgba(53, 213, 191, 0.5);
+  background: rgba(53, 213, 191, 0.15);
+}
+
+.prime-title-cluster {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.prime-anime-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+}
+
+.prime-title-sep {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+}
+
+.prime-season-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.prime-ep-pill {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(53, 213, 191, 0.16);
+  color: var(--accent-color);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(53, 213, 191, 0.35);
+  white-space: nowrap;
+}
+
+.prime-top-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* Amazon Prime X-Ray Badge Button */
+.prime-xray-badge-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: linear-gradient(135deg, rgba(20, 26, 42, 0.95), rgba(30, 41, 68, 0.95));
+  border: 1px solid rgba(53, 213, 191, 0.45);
+  color: #fff;
+  padding: 0.45rem 1rem;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 12px rgba(53, 213, 191, 0.2);
+  transition: all var(--transition-fast);
+  backdrop-filter: blur(14px);
+}
+
+.prime-xray-badge-btn:hover {
+  background: linear-gradient(135deg, rgba(28, 38, 62, 0.98), rgba(42, 58, 96, 0.98));
+  border-color: var(--accent-color);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 18px rgba(53, 213, 191, 0.4);
+}
+
+.prime-xray-badge-btn.active {
+  background: var(--accent-color);
+  color: #07080d;
+  border-color: var(--accent-color);
+  font-weight: 700;
+}
+
+.prime-xray-badge-btn.active .xray-cast-count {
+  background: rgba(0, 0, 0, 0.2);
+  color: #07080d;
+}
+
+.xray-sparkle-icon {
+  color: var(--accent-color);
+  animation: pulseSlow 2s infinite ease-in-out;
+}
+
+.prime-xray-badge-btn.active .xray-sparkle-icon {
+  color: #07080d;
+}
+
+.xray-badge-text {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+}
+
+.xray-cast-count {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-muted);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+}
+
+/* Audio Track Segmented Group */
+.prime-track-group {
+  display: flex;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-full);
+  padding: 2px;
+  backdrop-filter: blur(12px);
+}
+
+.prime-track-pill {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.prime-track-pill:hover {
+  color: #fff;
+}
+
+.prime-track-pill.active {
+  background: var(--accent-color);
+  color: #07080d;
+  box-shadow: 0 2px 8px rgba(53, 213, 191, 0.4);
+}
+
+/* Prime Center Controls */
+.prime-center-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+  margin: auto;
+}
+
+.prime-skip-round-btn {
+  position: relative;
+  background: rgba(14, 17, 26, 0.75);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  backdrop-filter: blur(12px);
+}
+
+.prime-skip-round-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.45);
+  transform: scale(1.1);
+}
+
+.prime-skip-text {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  color: var(--accent-color);
+  margin-top: 1px;
+}
+
+.prime-play-main-btn {
+  background: linear-gradient(135deg, var(--accent-color), #20b8a3);
+  border: none;
+  color: #07080d;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+  box-shadow: 0 8px 30px rgba(53, 213, 191, 0.5), 0 0 15px rgba(53, 213, 191, 0.3);
+}
+
+.prime-play-main-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 12px 38px rgba(53, 213, 191, 0.7), 0 0 25px rgba(53, 213, 191, 0.5);
+}
+
+.prime-play-main-btn:active {
+  transform: scale(0.96);
+}
+
+/* Prime Bottom Bar */
+.prime-bottom-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem max(1.5rem, var(--sar)) max(1rem, var(--sab)) max(1.5rem, var(--sal));
+}
+
+/* Prime Timeline Progress Bar */
+.prime-progress-container {
+  position: relative;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.prime-progress-track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: var(--radius-full);
+  transition: height 0.15s ease;
+}
+
+.prime-progress-container:hover .prime-progress-track {
+  height: 7px;
+}
+
+.prime-progress-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: var(--radius-full);
+  background-color: var(--accent-color);
+  box-shadow: 0 0 10px rgba(53, 213, 191, 0.6);
+}
+
+.prime-progress-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--accent-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  transition: transform 0.15s ease;
+  pointer-events: none;
+}
+
+.prime-progress-container:hover .prime-progress-thumb {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.prime-progress-hover-tooltip {
+  position: absolute;
+  bottom: 28px;
+  transform: translateX(-50%);
+  background: rgba(14, 17, 26, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+/* Bottom Controls Row */
+.prime-bottom-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.prime-controls-left,
+.prime-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.prime-icon-btn-sm {
+  background: transparent;
+  border: none;
+  color: #fff;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.prime-icon-btn-sm:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--accent-color);
+}
+
+.prime-icon-btn-sm:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.prime-icon-btn-sm.active {
+  color: var(--accent-color);
+  background: rgba(53, 213, 191, 0.15);
+}
+
+/* Volume Slider */
+.prime-volume-cluster {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.prime-volume-slider {
+  width: 75px;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-full);
+  outline: none;
+  cursor: pointer;
+}
+
+.prime-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Timestamp */
+.prime-time-stamp {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.35rem;
+}
+
+.prime-time-stamp .current {
+  color: #fff;
+  font-weight: 700;
+}
+
+.prime-time-stamp .sep {
+  color: var(--text-dim);
+}
+
+/* Control Pills */
+.prime-control-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  backdrop-filter: blur(10px);
+}
+
+.prime-control-pill-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.prime-control-pill-btn.active {
+  background: rgba(53, 213, 191, 0.16);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+/* Speed Dropdown Menu */
+.prime-speed-dropdown {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  background: rgba(14, 17, 26, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-md);
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
+  z-index: 30;
+  min-width: 90px;
+}
+
+.prime-speed-item {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.prime-speed-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.prime-speed-item.active {
+  background: rgba(53, 213, 191, 0.18);
+  color: var(--accent-color);
+}
+
+/* ==========================================================================
+   AMAZON PRIME VIDEO SIGNATURE X-RAY CAST & IN-SCENE STRIP
+   ========================================================================== */
+
+.prime-xray-inscene-strip {
+  position: absolute;
+  bottom: 84px;
+  left: max(1.5rem, var(--sal));
+  right: max(1.5rem, var(--sar));
+  z-index: 15;
+  background: linear-gradient(135deg, rgba(14, 17, 26, 0.94), rgba(20, 26, 40, 0.94));
+  border: 1px solid rgba(53, 213, 191, 0.3);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 1rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75), 0 0 20px rgba(53, 213, 191, 0.12);
+  backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.xray-strip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.xray-tag {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.75rem;
+  color: var(--accent-color);
+  letter-spacing: 0.12em;
+}
+
+.xray-label {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+  margin-left: 0.4rem;
+}
+
+.xray-strip-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+  scrollbar-width: thin;
+}
+
+.xray-strip-chips::-webkit-scrollbar {
+  height: 4px;
+}
+
+.xray-strip-chips::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-full);
+}
+
+.xray-character-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.35rem 0.75rem 0.35rem 0.35rem;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.xray-character-chip:hover {
+  background: rgba(53, 213, 191, 0.14);
+  border-color: var(--accent-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+.xray-chip-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+}
+
+.xray-chip-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.xray-chip-char-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.xray-chip-va-name {
+  font-size: 0.68rem;
+  color: var(--accent-color);
+  font-family: var(--font-mono);
+}
+
+/* ==========================================================================
+   AMAZON PRIME VIDEO X-RAY DRAWER (SLIDE-OVER PANEL)
+   ========================================================================== */
+
+.prime-xray-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(440px, 92vw);
+  background: linear-gradient(180deg, rgba(14, 17, 26, 0.98), rgba(9, 11, 17, 0.99));
+  border-left: 1px solid rgba(53, 213, 191, 0.35);
+  box-shadow: -12px 0 36px rgba(0, 0, 0, 0.85);
+  z-index: 35;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(20px);
+  animation: slideDrawer 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideDrawer {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.xray-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(1.1rem, var(--sat)) 1.25rem 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.xray-drawer-title-cluster {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.xray-drawer-title-cluster h3 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.xray-drawer-tabs {
+  display: flex;
+  padding: 0.5rem 1.25rem;
+  gap: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  overflow-x: auto;
+}
+
+.xray-drawer-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.xray-drawer-tab-btn:hover {
+  color: #fff;
+}
+
+.xray-drawer-tab-btn.active {
+  background: rgba(53, 213, 191, 0.16);
+  color: var(--accent-color);
+  border: 1px solid rgba(53, 213, 191, 0.3);
+}
+
+.xray-drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+}
+
+/* X-Ray Cast Cards in Drawer */
+.xray-characters-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.xray-char-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.xray-char-card:hover {
+  background: rgba(53, 213, 191, 0.08);
+  border-color: rgba(53, 213, 191, 0.35);
+  transform: translateY(-2px);
+}
+
+.xray-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.xray-char-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+}
+
+.xray-char-names {
+  flex: 1;
+  min-width: 0;
+}
+
+.xray-char-romaji {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.xray-char-native {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+
+.xray-char-role-badge {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  display: inline-block;
+}
+
+.xray-va-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.xray-va-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.xray-va-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.xray-va-label {
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+}
+
+.xray-va-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent-color);
+}
+
+/* Character Modal Dialog */
+.xray-char-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  backdrop-filter: blur(12px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.xray-char-modal-content {
+  background: rgba(14, 17, 26, 0.98);
+  border: 1px solid rgba(53, 213, 191, 0.35);
+  border-radius: var(--radius-lg);
+  max-width: 520px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.xray-char-modal-header {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.xray-char-modal-avatar {
+  width: 90px;
+  height: 120px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  border: 2px solid var(--accent-color);
+  flex-shrink: 0;
+}
+
+.xray-char-modal-names {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.xray-char-modal-romaji {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.xray-char-modal-body h4 {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  margin-bottom: 0.5rem;
+}
+
+.xray-char-modal-body p {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+/* Prime Video Auto Next Overlay */
+.prime-autonext-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 8, 13, 0.94);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(14px);
+  padding: 1.5rem;
+  text-align: center;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.prime-autonext-card {
+  max-width: 480px;
+  width: 100%;
+  background: rgba(14, 17, 26, 0.9);
+  border: 1px solid rgba(53, 213, 191, 0.3);
+  border-radius: var(--radius-lg);
+  padding: 2rem 1.5rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(53, 213, 191, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.prime-autonext-badge {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--accent-color);
+  background: rgba(53, 213, 191, 0.12);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+}
+
+.prime-autonext-title {
+  font-size: clamp(1.2rem, 3.5vw, 1.6rem);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.3;
+}
+
+.prime-autonext-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.prime-autonext-btns {
+  display: flex;
+  gap: 0.85rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Mobile Prime Video Adaptations */
+@media (max-width: 768px) {
+  .prime-top-bar {
+    padding: max(0.65rem, var(--sat)) max(0.85rem, var(--sar)) 2rem max(0.85rem, var(--sal));
+  }
+
+  .prime-anime-title {
+    max-width: 140px;
+  }
+
+  .prime-season-label {
+    display: none;
+  }
+
+  .prime-center-controls {
+    gap: 1.5rem;
+  }
+
+  .prime-play-main-btn {
+    width: 60px;
+    height: 60px;
+  }
+
+  .prime-skip-round-btn {
+    width: 42px;
+    height: 42px;
+  }
+
+  .prime-bottom-bar {
+    padding: 2rem max(0.85rem, var(--sar)) max(0.65rem, var(--sab)) max(0.85rem, var(--sal));
+  }
+
+  .prime-volume-cluster {
+    display: none;
+  }
+
+  .prime-xray-inscene-strip {
+    bottom: 58px;
+    left: max(0.85rem, var(--sal));
+    right: max(0.85rem, var(--sar));
+  }
+
+  .xray-chip-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .xray-chip-char-name {
+    font-size: 0.75rem;
+  }
+
+  .xray-chip-va-name {
+    font-size: 0.62rem;
+  }
+}

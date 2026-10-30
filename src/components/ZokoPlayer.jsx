@@ -31,6 +31,7 @@ import { getAnimeDetails, fetchFullFranchiseSeasons } from '../services/api';
 import { savePlayerConfig, getPlayerConfig } from '../services/storage';
 import AnimeCard from './AnimeCard';
 import DownloadModal from './DownloadModal';
+import PrimeXRayPlayer from './PrimeXRayPlayer';
 
 // Helper for vendor-prefixed fullscreen checks
 const isFullscreenElement = (element) => {
@@ -95,6 +96,9 @@ export default function ZokoPlayer({
   const [detailsData, setDetailsData] = useState(anime);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDownloadOpen, setIsDownloadOpen] = useState(false);
+  const [playbackCurrentTime, setPlaybackCurrentTime] = useState(initialTime);
+  const [playbackDuration, setPlaybackDuration] = useState(1440);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const containerRef = useRef(null);
   const iframeRef = useRef(null);
@@ -181,12 +185,13 @@ export default function ZokoPlayer({
 
   const sendPlayerMessage = useCallback((payload) => {
     try {
-      if (iframeRef.current && iframeRef.current.contentWindow) {
-        iframeRef.current.contentWindow.postMessage(
+      const iframes = document.querySelectorAll('iframe');
+      iframes.forEach(f => {
+        f.contentWindow?.postMessage(
           { channel: 'zokoanime', ...payload },
           'https://zokoanime.video'
         );
-      }
+      });
     } catch (e) {
       // Cross-origin safe guard
     }
@@ -197,6 +202,9 @@ export default function ZokoPlayer({
     if (pos === undefined || dur === undefined || dur <= 0) return;
     currentTimeRef.current = pos;
     durationRef.current = dur;
+    setPlaybackCurrentTime(pos);
+    if (dur > 0) setPlaybackDuration(dur);
+    setIsPlaying(true);
 
     const now = Date.now();
     if (!force && now - lastProgressSaveRef.current < 3500) {
@@ -215,6 +223,12 @@ export default function ZokoPlayer({
       duration: Math.floor(dur)
     });
   }, [currentAnime, currentEpisode, onProgressUpdate]);
+
+  const handleSeekTime = (targetSec) => {
+    currentTimeRef.current = targetSec;
+    setPlaybackCurrentTime(targetSec);
+    sendPlayerMessage({ type: 'seek', time: targetSec });
+  };
 
   // Determine if a next season exists
   const getNextSeason = useCallback(() => {
@@ -517,294 +531,50 @@ export default function ZokoPlayer({
 
       {/* Main Video & Content Column */}
       <div className="player-main-col">
-        {/* Sleek Player Header Bar */}
-        <div className="player-header-bar">
-          <div className="player-header-left">
-            <button
-              className="player-back-btn"
-              onClick={onBack}
-              title="Return to browsing anime catalog"
-              aria-label="Back to browse"
-            >
-              <ArrowLeft size={16} />
-              <span>Back</span>
-            </button>
-
-            <div className="player-title-breadcrumbs">
-              <span className="player-anime-name" title={title}>{title}</span>
-              <span className="player-breadcrumb-sep">•</span>
-              <span className="player-season-name">{activeSeasonName}</span>
-              <span className="player-ep-badge">EP {currentEpisode}/{totalEpisodes}</span>
-            </div>
-          </div>
-
-          <div className="player-header-right">
-            <button
-              className="player-action-btn"
-              onClick={() => setIsDownloadOpen(true)}
-              title="Download Episode for Offline Watching"
-              aria-label="Download episode"
-            >
-              <Download size={15} />
-              <span>Download</span>
-            </button>
-
-            <button
-              className={`player-action-btn ${isBookmarked ? 'active' : ''}`}
-              onClick={() => onToggleWatchlist(currentAnime)}
-              title={isBookmarked ? 'Saved in Watchlist' : 'Add to Watchlist'}
-              aria-label="Save to watchlist"
-            >
-              <Bookmark size={15} fill={isBookmarked ? 'currentColor' : 'none'} />
-              <span>{isBookmarked ? 'Saved' : 'Watchlist'}</span>
-            </button>
-
-            <button
-              className="player-action-btn"
-              onClick={handleShare}
-              title="Share stream link"
-              aria-label="Share"
-            >
-              <Share2 size={15} />
-              <span>Share</span>
-            </button>
-
-            <button
-              className={`player-action-btn ${theaterMode ? 'active' : ''}`}
-              onClick={() => setTheaterMode(!theaterMode)}
-              title={theaterMode ? 'Exit Cinema Theater View' : 'Cinema Theater View'}
-              aria-label="Toggle theater mode"
-            >
-              {theaterMode ? <Minimize2 size={15} /> : <Sliders size={15} />}
-              <span>{theaterMode ? 'Exit' : 'Theater'}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Video Player Frame Container */}
-        <div className="video-frame-container" ref={containerRef} id="player-wrap">
-          {playerLoading && (
-            <div className="player-loading-overlay">
-              <div className="player-spinner" />
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                Connecting to {server === 'zoko' ? 'ZokoAnime Adaptive HLS Engine' : 'Kiwi Stream Mirror'}...
-              </div>
-            </div>
-          )}
-
-          {/* Auto Next Countdown Overlay */}
-          {autoNextCountdown !== null && (
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'rgba(7, 8, 13, 0.94)',
-                zIndex: 20,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '1.25rem',
-                backdropFilter: 'blur(10px)',
-                padding: '1.5rem',
-                textAlign: 'center'
-              }}
-            >
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', letterSpacing: '0.05em' }}>
-                {nextSeasonTarget ? 'SEASON COMPLETED' : 'EPISODE FINISHED'}
-              </div>
-              <h2 style={{ fontSize: 'clamp(1.3rem, 4vw, 1.8rem)', color: 'var(--accent-color)', fontWeight: 800 }}>
-                {nextSeasonTarget
-                  ? `Next Season (${nextSeasonTarget.seasonName || 'Next Arc'}) in ${autoNextCountdown}s`
-                  : `Episode ${currentEpisode + 1} starting in ${autoNextCountdown}s`}
-              </h2>
-              <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-                <button
-                  className="btn-primary"
-                  onClick={() => {
-                    cancelAutoNext();
-                    if (nextSeasonTarget) {
-                      handleSeasonChange(nextSeasonTarget.id);
-                    } else {
-                      handleNextEpisode();
-                    }
-                  }}
-                >
-                  <Play size={16} fill="currentColor" />
-                  <span>{nextSeasonTarget ? 'Start Next Season' : `Play Episode ${currentEpisode + 1}`}</span>
-                </button>
-                <button className="btn-secondary" onClick={cancelAutoNext}>
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-
-          <iframe
-            ref={iframeRef}
-            src={embedUrl}
-            title={`${title} - Episode ${currentEpisode}`}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-            allowFullScreen
-            onLoad={() => setPlayerLoading(false)}
-          />
-        </div>
-
-        {/* Player Controls Toolbar */}
-        <div className="player-controls-toolbar">
-          {/* Left Controls: Audio Track, Streaming Server & Source */}
-          <div className="player-controls-left">
-            {/* Audio Track Switch (Sub, HSub, Dub) */}
-            <div className="control-group">
-              <div className="control-group-label" title="Audio and Subtitles">
-                <Subtitles size={13} />
-                <span>Track</span>
-              </div>
-              <div className="segmented-control">
-                <button
-                  className={`segmented-btn ${currentTrack === 'sub' ? 'active' : ''}`}
-                  onClick={() => handleTrackChange('sub')}
-                  title="Soft Subtitles (English)"
-                >
-                  Sub
-                </button>
-                <button
-                  className={`segmented-btn ${currentTrack === 'hsub' ? 'active' : ''}`}
-                  onClick={() => handleTrackChange('hsub')}
-                  title="Hard-coded Subtitles"
-                >
-                  HSub
-                </button>
-                <button
-                  className={`segmented-btn ${currentTrack === 'dub' ? 'active' : ''}`}
-                  onClick={() => handleTrackChange('dub')}
-                  title="English Audio Dub"
-                >
-                  Dub
-                </button>
-              </div>
-            </div>
-
-            {/* Server Selector */}
-            <div className="control-group">
-              <div className="control-group-label" title="Streaming Server">
-                <Server size={13} />
-                <span>Server</span>
-              </div>
-              <div className="segmented-control">
-                <button
-                  className={`segmented-btn ${server === 'zoko' ? 'active' : ''}`}
-                  onClick={() => handleServerChange('zoko')}
-                  title="Zoko HLS Adaptive Stream"
-                >
-                  Zoko HLS
-                </button>
-                <button
-                  className={`segmented-btn ${server === 'kiwi' ? 'active' : ''}`}
-                  onClick={() => handleServerChange('kiwi')}
-                  title="Kiwi Mirror Stream Server"
-                >
-                  Kiwi
-                </button>
-              </div>
-            </div>
-
-            {/* Metadata Source ID (AniList vs MAL) */}
-            {hasMalId && (
-              <div className="control-group">
-                <div className="control-group-label" title="Metadata Provider">
-                  <Radio size={13} />
-                  <span>Source</span>
-                </div>
-                <div className="segmented-control">
-                  <button
-                    className={`segmented-btn ${source === 'ani' ? 'active' : ''}`}
-                    onClick={() => handleSourceChange('ani')}
-                    title={`AniList ID: ${currentAnime.id}`}
-                  >
-                    AniList
-                  </button>
-                  <button
-                    className={`segmented-btn ${source === 'mal' ? 'active' : ''}`}
-                    onClick={() => handleSourceChange('mal')}
-                    title={`MAL ID: ${currentAnime.idMal}`}
-                  >
-                    MAL
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Right Controls: Quick Navigation, Auto-Skip, Auto-Next & Display Mode */}
-          <div className="player-controls-right">
-            {/* Quick Episode Step Group */}
-            <div className="quick-step-group">
-              <button
-                className="quick-step-btn"
-                disabled={currentEpisode <= 1}
-                onClick={handlePrevEpisode}
-                title="Previous Episode"
-                aria-label="Previous episode"
-              >
-                <SkipBack size={14} />
-              </button>
-              <span className="quick-step-label">
-                {currentEpisode}/{totalEpisodes}
-              </span>
-              <button
-                className="quick-step-btn"
-                disabled={currentEpisode >= totalEpisodes && !getNextSeason()}
-                onClick={handleNextEpisode}
-                title="Next Episode"
-                aria-label="Next episode"
-              >
-                <SkipForward size={14} />
-              </button>
-            </div>
-
-            {/* Auto Skip Intro / Outro Pill */}
-            <button
-              className={`pill-toggle-btn ${autoSkip ? 'active' : ''}`}
-              onClick={handleToggleAutoSkip}
-              title="Automatically skip anime opening and ending themes"
-            >
-              <Sparkles size={13} />
-              <span>Auto-Skip</span>
-              <span className={`pill-dot ${autoSkip ? 'on' : ''}`} />
-            </button>
-
-            {/* Auto Next Episode Pill */}
-            <button
-              className={`pill-toggle-btn ${autoNext ? 'active' : ''}`}
-              onClick={handleToggleAutoNext}
-              title="Play next episode automatically when finished"
-            >
-              <RotateCcw size={13} />
-              <span>Auto-Next</span>
-              <span className={`pill-dot ${autoNext ? 'on' : ''}`} />
-            </button>
-
-            {/* Fullscreen Button */}
-            <button
-              className="icon-btn"
-              onClick={() => setIsDownloadOpen(true)}
-              title="Download Episode for Offline Watching"
-              aria-label="Download Episode"
-            >
-              <Download size={16} />
-            </button>
-
-            <button
-              className="icon-btn"
-              onClick={handleToggleFullscreen}
-              title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-              aria-label="Toggle Fullscreen"
-            >
-              {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-            </button>
-          </div>
-        </div>
+        {/* Amazon Prime Video Custom Player with X-Ray Character Lore */}
+        <PrimeXRayPlayer
+          embedUrl={embedUrl}
+          title={title}
+          seasonName={activeSeasonName}
+          currentEpisode={currentEpisode}
+          totalEpisodes={totalEpisodes}
+          currentTrack={currentTrack}
+          server={server}
+          characters={characters}
+          detailsData={detailsData}
+          isBookmarked={isBookmarked}
+          playerLoading={playerLoading}
+          accentColor="var(--accent-color)"
+          onBack={onBack}
+          onTrackChange={handleTrackChange}
+          onServerChange={handleServerChange}
+          onToggleWatchlist={() => onToggleWatchlist(currentAnime)}
+          onShare={handleShare}
+          onOpenDownload={() => setIsDownloadOpen(true)}
+          onNextEpisode={handleNextEpisode}
+          onPrevEpisode={handlePrevEpisode}
+          onSeekTime={handleSeekTime}
+          onToggleFullscreen={handleToggleFullscreen}
+          isFullscreen={isFullscreen}
+          theaterMode={theaterMode}
+          setTheaterMode={setTheaterMode}
+          sendPlayerMessage={sendPlayerMessage}
+          currentTime={playbackCurrentTime}
+          duration={playbackDuration}
+          isPlaying={isPlaying}
+          setIsPlaying={setIsPlaying}
+          containerRef={containerRef}
+          iframeRef={iframeRef}
+          onIframeLoad={() => setPlayerLoading(false)}
+          autoSkip={autoSkip}
+          autoNext={autoNext}
+          onToggleAutoSkip={handleToggleAutoSkip}
+          onToggleAutoNext={handleToggleAutoNext}
+          autoNextCountdown={autoNextCountdown}
+          nextSeasonTarget={nextSeasonTarget}
+          cancelAutoNext={cancelAutoNext}
+          onStartNextSeason={(seasonId) => handleSeasonChange(seasonId)}
+        />
 
         {/* Lower Section Tabbed Navigation (Overview, Characters, Seasons, Recommendations) */}
         <div className="player-info-card">
