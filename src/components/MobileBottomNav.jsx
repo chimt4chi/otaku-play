@@ -1,10 +1,11 @@
 import React from 'react';
-import { Tv, Compass, Flame, Star, Bookmark } from 'lucide-react';
+import { Tv, Compass, Flame, Bookmark, Download } from 'lucide-react';
 
 export default function MobileBottomNav({
   currentView,
   setCurrentView,
-  watchlistCount = 0
+  watchlistCount = 0,
+  downloadsCount = 0
 }) {
   return (
     <nav className="mobile-bottom-nav" aria-label="Mobile Navigation">
@@ -17,7 +18,7 @@ export default function MobileBottomNav({
         }}
         aria-label="Home"
       >
-        <Tv size={20} />
+        <Tv size={19} />
         <span className="mobile-nav-label">Home</span>
       </button>
 
@@ -30,8 +31,28 @@ export default function MobileBottomNav({
         }}
         aria-label="Genres"
       >
-        <Compass size={20} />
+        <Compass size={19} />
         <span className="mobile-nav-label">Genres</span>
+      </button>
+
+      <button
+        type="button"
+        className={`mobile-nav-btn ${currentView === 'downloads' ? 'active' : ''}`}
+        onClick={() => {
+          setCurrentView('downloads');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        aria-label="Downloads"
+      >
+        <div style={{ position: 'relative', display: 'inline-flex' }}>
+          <Download size={19} />
+          {downloadsCount > 0 && (
+            <span className="mobile-nav-badge">
+              {downloadsCount > 99 ? '99+' : downloadsCount}
+            </span>
+          )}
+        </div>
+        <span className="mobile-nav-label">Offline</span>
       </button>
 
       <button
@@ -43,21 +64,8 @@ export default function MobileBottomNav({
         }}
         aria-label="Popular"
       >
-        <Flame size={20} />
+        <Flame size={19} />
         <span className="mobile-nav-label">Popular</span>
-      </button>
-
-      <button
-        type="button"
-        className={`mobile-nav-btn ${currentView === 'top' ? 'active' : ''}`}
-        onClick={() => {
-          setCurrentView('top');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        aria-label="Top Rated"
-      >
-        <Star size={20} />
-        <span className="mobile-nav-label">Top</span>
       </button>
 
       <button
@@ -70,7 +78,7 @@ export default function MobileBottomNav({
         aria-label="Watchlist"
       >
         <div style={{ position: 'relative', display: 'inline-flex' }}>
-          <Bookmark size={20} />
+          <Bookmark size={19} />
           {watchlistCount > 0 && (
             <span className="mobile-nav-badge">
               {watchlistCount > 99 ? '99+' : watchlistCount}
@@ -82,4 +90,3 @@ export default function MobileBottomNav({
     </nav>
   );
 }
-

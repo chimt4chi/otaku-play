@@ -9,7 +9,9 @@ import {
   Flame, 
   Star, 
   Compass, 
-  Tv 
+  Tv,
+  Download,
+  Smartphone
 } from 'lucide-react';
 
 const ACCENT_COLORS = [
@@ -29,7 +31,8 @@ export default function Navbar({
   setTheme,
   accentColor,
   setAccentColor,
-  watchlistCount = 0
+  watchlistCount = 0,
+  downloadsCount = 0
 }) {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const colorPickerRef = useRef(null);
@@ -97,6 +100,19 @@ export default function Navbar({
           </button>
 
           <button 
+            className={`nav-item ${currentView === 'downloads' ? 'active' : ''}`}
+            onClick={() => setCurrentView('downloads')}
+          >
+            <Download size={16} />
+            <span>Downloads</span>
+            {downloadsCount > 0 && (
+              <span className="badge badge-brand" style={{ padding: '0.1rem 0.45rem', fontSize: '0.65rem' }}>
+                {downloadsCount}
+              </span>
+            )}
+          </button>
+
+          <button 
             className={`nav-item ${currentView === 'watchlist' ? 'active' : ''}`}
             onClick={() => setCurrentView('watchlist')}
           >
@@ -123,6 +139,18 @@ export default function Navbar({
             <span className="search-text">Search...</span>
             <span className="search-shortcut-badge">/</span>
           </button>
+
+          {/* Visible APK download badge/button */}
+          <a
+            href="/assets/OtakuPlay.apk"
+            download="OtakuPlay.apk"
+            className="apk-nav-badge"
+            title="Download Dedicated Android App (OtakuPlay.apk)"
+            aria-label="Download Android App APK"
+          >
+            <Smartphone size={14} />
+            <span>APK</span>
+          </a>
 
           {/* Accent Color Switcher */}
           <div style={{ position: 'relative' }} ref={colorPickerRef}>

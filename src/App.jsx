@@ -6,6 +6,7 @@ import GenresView from './views/GenresView';
 import PopularView from './views/PopularView';
 import TopView from './views/TopView';
 import WatchlistView from './views/WatchlistView';
+import DownloadsView from './views/DownloadsView';
 import ZokoPlayer from './components/ZokoPlayer';
 import AnimeDetailModal from './components/AnimeDetailModal';
 import SearchModal from './components/SearchModal';
@@ -18,9 +19,13 @@ import {
   getPlayerConfig,
   savePlayerConfig,
   getSavedTheme,
-  saveTheme
+  saveTheme,
+  getDownloads,
+  removeDownload,
+  clearAllDownloads
 } from './services/storage';
 import { App as CapApp } from '@capacitor/app';
+import { Smartphone, Download } from 'lucide-react';
 
 export default function App() {
   const [currentView, setCurrentView] = useState('home');
@@ -35,6 +40,7 @@ export default function App() {
   const [playerConfig, setPlayerConfig] = useState(getPlayerConfig());
   const [continueWatchingList, setContinueWatchingList] = useState(getContinueWatchingList());
   const [watchlist, setWatchlist] = useState(getWatchlist());
+  const [downloads, setDownloads] = useState(getDownloads());
 
   // Apply theme to document
   useEffect(() => {
@@ -125,6 +131,16 @@ export default function App() {
     setWatchlist(list);
   }, []);
 
+  const handleRemoveDownload = useCallback((animeId, episode) => {
+    const updated = removeDownload(animeId, episode);
+    setDownloads(updated);
+  }, []);
+
+  const handleClearAllDownloads = useCallback(() => {
+    const updated = clearAllDownloads();
+    setDownloads(updated);
+  }, []);
+
   const isBookmarked = (id) => watchlist.some(item => item.id === id);
 
   return (
@@ -139,6 +155,7 @@ export default function App() {
         accentColor={playerConfig.accentColor}
         setAccentColor={(color) => setPlayerConfig(prev => ({ ...prev, accentColor: color }))}
         watchlistCount={watchlist.length}
+        downloadsCount={downloads.length}
       />
 
       {/* Main Content Router */}
@@ -200,6 +217,16 @@ export default function App() {
             onViewDetails={(a) => setDetailAnime(a)}
           />
         )}
+
+        {currentView === 'downloads' && (
+          <DownloadsView
+            downloads={downloads}
+            onWatchAnime={handleWatchAnime}
+            onRemoveDownload={handleRemoveDownload}
+            onClearAllDownloads={handleClearAllDownloads}
+            onBrowseAnime={() => setCurrentView('home')}
+          />
+        )}
       </main>
 
       {/* Dedicated Mobile Bottom Navigation Bar */}
@@ -207,6 +234,7 @@ export default function App() {
         currentView={currentView}
         setCurrentView={setCurrentView}
         watchlistCount={watchlist.length}
+        downloadsCount={downloads.length}
       />
 
       {/* Anime Detail Modal */}
@@ -244,10 +272,23 @@ export default function App() {
             </p>
           </div>
 
-          <div className="footer-tags">
-            <span>HLS Stream: Active</span>
-            <span>Multi-Track: SUB / HSUB / DUB</span>
-            <span>Auto-Skip: Ready</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <a
+              href="/assets/OtakuPlay.apk"
+              download="OtakuPlay.apk"
+              className="btn-secondary"
+              style={{ fontSize: '0.78rem', padding: '0.45rem 0.85rem' }}
+              title="Download Dedicated Android App"
+            >
+              <Smartphone size={14} color="var(--accent-color)" />
+              <span>Download APK</span>
+            </a>
+
+            <div className="footer-tags">
+              <span>HLS Stream: Active</span>
+              <span>Multi-Track: SUB / HSUB / DUB</span>
+              <span>Offline: Supported</span>
+            </div>
           </div>
         </div>
       </footer>

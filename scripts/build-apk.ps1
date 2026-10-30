@@ -29,11 +29,16 @@ try {
 
 $sourceApk = "android\app\build\outputs\apk\debug\app-debug.apk"
 $targetApk = "OtakuPlay.apk"
+$assetsApk = "public\assets\OtakuPlay.apk"
 
 if (Test-Path $sourceApk) {
     Copy-Item -Path $sourceApk -Destination $targetApk -Force
+    if (-not (Test-Path "public\assets")) {
+        New-Item -ItemType Directory -Path "public\assets" -Force | Out-Null
+    }
+    Copy-Item -Path $sourceApk -Destination $assetsApk -Force
     $sizeMb = [math]::Round(((Get-Item $targetApk).Length / 1MB), 2)
-    Write-Host "==> SUCCESS! Dedicated Android APK created: $targetApk ($sizeMb MB)"
+    Write-Host "==> SUCCESS! Dedicated Android APK created: $targetApk and $assetsApk ($sizeMb MB)"
 } else {
     Write-Error "APK compilation output not found at: $sourceApk"
 }

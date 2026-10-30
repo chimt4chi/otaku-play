@@ -24,11 +24,13 @@ import {
   Layers,
   Search,
   Sliders,
-  Tv
+  Tv,
+  Download
 } from 'lucide-react';
 import { getAnimeDetails, fetchFullFranchiseSeasons } from '../services/api';
 import { savePlayerConfig, getPlayerConfig } from '../services/storage';
 import AnimeCard from './AnimeCard';
+import DownloadModal from './DownloadModal';
 
 // Helper for vendor-prefixed fullscreen checks
 const isFullscreenElement = (element) => {
@@ -92,6 +94,7 @@ export default function ZokoPlayer({
   const [quickJumpVal, setQuickJumpVal] = useState('');
   const [detailsData, setDetailsData] = useState(anime);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isDownloadOpen, setIsDownloadOpen] = useState(false);
 
   const containerRef = useRef(null);
   const iframeRef = useRef(null);
@@ -537,6 +540,16 @@ export default function ZokoPlayer({
 
           <div className="player-header-right">
             <button
+              className="player-action-btn"
+              onClick={() => setIsDownloadOpen(true)}
+              title="Download Episode for Offline Watching"
+              aria-label="Download episode"
+            >
+              <Download size={15} />
+              <span>Download</span>
+            </button>
+
+            <button
               className={`player-action-btn ${isBookmarked ? 'active' : ''}`}
               onClick={() => onToggleWatchlist(currentAnime)}
               title={isBookmarked ? 'Saved in Watchlist' : 'Add to Watchlist'}
@@ -773,6 +786,15 @@ export default function ZokoPlayer({
             </button>
 
             {/* Fullscreen Button */}
+            <button
+              className="icon-btn"
+              onClick={() => setIsDownloadOpen(true)}
+              title="Download Episode for Offline Watching"
+              aria-label="Download Episode"
+            >
+              <Download size={16} />
+            </button>
+
             <button
               className="icon-btn"
               onClick={handleToggleFullscreen}
@@ -1187,6 +1209,17 @@ export default function ZokoPlayer({
           </div>
         </div>
       </div>
+
+      {/* Offline Episode Download Modal */}
+      <DownloadModal
+        isOpen={isDownloadOpen}
+        onClose={() => setIsDownloadOpen(false)}
+        anime={currentAnime}
+        currentEpisode={currentEpisode}
+        currentTrack={currentTrack}
+        server={server}
+        onDownloadSaved={() => showToast(`Saved Episode ${currentEpisode} to Offline Downloads!`)}
+      />
     </div>
   );
 }

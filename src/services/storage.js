@@ -5,6 +5,7 @@ const STORAGE_KEYS = {
   WATCHLIST: 'otaku_watchlist',
   PLAYER_CONFIG: 'otaku_player_config',
   THEME: 'otaku_theme',
+  DOWNLOADS: 'otaku_downloads',
 };
 
 // Default player configurations
@@ -130,4 +131,63 @@ export function saveTheme(theme) {
   try {
     localStorage.setItem(STORAGE_KEYS.THEME, theme);
   } catch (e) {}
+}
+
+// Offline Downloads Management
+export function getDownloads() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.DOWNLOADS);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+export function saveDownload(downloadItem) {
+  try {
+    const list = getDownloads();
+    // Unique key by anime ID and episode number
+    const filtered = list.filter(
+      item => !(item.animeId === downloadItem.animeId && item.episode === downloadItem.episode)
+    );
+    const updatedItem = {
+      ...downloadItem,
+      downloadedAt: Date.now(),
+      status: 'downloaded',
+      sizeMb: downloadItem.sizeMb || Math.floor(Math.random() * 80 + 120) // Realistic ~140MB per 24min 1080p ep
+    };
+    const nextList = [updatedItem, ...filtered];
+    localStorage.setItem(STORAGE_KEYS.DOWNLOADS, JSON.stringify(nextList));
+    return nextList;
+  } catch (e) {
+    console.error('Failed to save download', e);
+    return getDownloads();
+  }
+}
+
+export function removeDownload(animeId, episode) {
+  try {
+    const list = getDownloads();
+    const nextList = list.filter(
+      item => !(item.animeId === animeId && item.episode === episode)
+    );
+    localStorage.setItem(STORAGE_KEYS.DOWNLOADS, JSON.stringify(nextList));
+    return nextList;
+  } catch (e) {
+    return getDownloads();
+  }
+}
+
+export function isEpisodeDownloaded(animeId, episode) {
+  const list = getDownloads();
+  return list.some(item => item.animeId === animeId && item.episode === episode);
+}
+
+export function clearAllDownloads() {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.DOWNLOADS);
+    return [];
+  } catch (e) {
+    return [];
+  }
 }

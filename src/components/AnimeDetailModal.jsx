@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { X, Play, Star, Bookmark, Calendar, Film, Layers, UserCheck } from 'lucide-react';
+import { X, Play, Star, Bookmark, Calendar, Film, Layers, UserCheck, Download } from 'lucide-react';
 import { getAnimeDetails } from '../services/api';
 import AnimeCard from './AnimeCard';
+import DownloadModal from './DownloadModal';
 
 export default function AnimeDetailModal({
   anime,
@@ -12,6 +13,7 @@ export default function AnimeDetailModal({
 }) {
   const [details, setDetails] = useState(anime);
   const [loading, setLoading] = useState(true);
+  const [isDownloadOpen, setIsDownloadOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -110,6 +112,15 @@ export default function AnimeDetailModal({
                   <Bookmark size={16} fill={isBookmarked ? 'currentColor' : 'none'} color={isBookmarked ? 'var(--accent-color)' : 'inherit'} />
                   <span>{isBookmarked ? 'In Watchlist' : 'Watchlist'}</span>
                 </button>
+
+                <button
+                  className="btn-secondary"
+                  onClick={() => setIsDownloadOpen(true)}
+                  title="Download episode offline"
+                >
+                  <Download size={16} />
+                  <span>Download</span>
+                </button>
               </div>
             </div>
           </div>
@@ -200,6 +211,15 @@ export default function AnimeDetailModal({
           )}
         </div>
       </div>
+
+      <DownloadModal
+        isOpen={isDownloadOpen}
+        onClose={() => setIsDownloadOpen(false)}
+        anime={details}
+        currentEpisode={1}
+        currentTrack="sub"
+        server="zoko"
+      />
     </div>
   );
 }
