@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, Play, Trash2, HardDrive, Film, ArrowRight, ShieldCheck, Sparkles, Smartphone } from 'lucide-react';
+import { Download, Play, Trash2, HardDrive, Film, ArrowRight, ShieldCheck, Sparkles, Smartphone, ExternalLink } from 'lucide-react';
 import { clearAllDownloads } from '../services/storage';
 
 export default function DownloadsView({
@@ -59,15 +59,29 @@ export default function DownloadsView({
           </div>
         </div>
 
-        <a
-          href="/assets/OtakuPlay.apk"
-          download="OtakuPlay.apk"
-          className="btn-primary"
-          style={{ padding: '0.65rem 1.4rem', fontSize: '0.82rem', flexShrink: 0 }}
-        >
-          <Download size={16} />
-          <span>Download APK (4.1 MB)</span>
-        </a>
+        <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <a
+            href="/assets/OtakuPlay.apk"
+            download="OtakuPlay.apk"
+            className="btn-primary"
+            style={{ padding: '0.65rem 1.2rem', fontSize: '0.82rem', flexShrink: 0 }}
+          >
+            <Download size={16} />
+            <span>Download APK (v1.0.0)</span>
+          </a>
+
+          <a
+            href="https://github.com/chimt4chi/otaku-play/releases"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-secondary"
+            style={{ padding: '0.65rem 1rem', fontSize: '0.82rem', flexShrink: 0 }}
+            title="View all versions and release notes on GitHub"
+          >
+            <ExternalLink size={14} />
+            <span>All GitHub Releases</span>
+          </a>
+        </div>
       </div>
 
       {/* Downloads List */}
