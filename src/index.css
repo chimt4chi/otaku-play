@@ -1770,13 +1770,38 @@ button {
     display: none !important;
   }
 
+  .navbar {
+    padding-top: max(0.65rem, var(--sat));
+    padding-bottom: 0.65rem;
+    padding-left: var(--sal);
+    padding-right: var(--sar);
+  }
+
   .navbar-inner {
-    padding: 0.65rem 1rem;
+    padding: 0 1rem !important;
     gap: 0.75rem;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .brand-logo {
     font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .brand-logo .logo-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
   }
 
   .search-text,
@@ -1785,7 +1810,22 @@ button {
   }
 
   .search-trigger-btn {
-    padding: 0.45rem 0.65rem;
+    width: 36px;
+    height: 36px;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+  }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .apk-nav-badge {
+    display: none !important;
   }
 
   .main-content {
@@ -2376,10 +2416,6 @@ button {
 
 /* Comprehensive Notch & Edge-to-Edge Fixes for Mobile */
 @media (max-width: 768px) {
-  .navbar-inner {
-    padding-top: max(0.65rem, var(--sat));
-  }
-
   .player-header-bar {
     padding-top: max(0.5rem, var(--sat));
     padding-left: var(--sal);

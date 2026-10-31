@@ -13,6 +13,7 @@ import {
   Download,
   Smartphone
 } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 
 const ACCENT_COLORS = [
   { name: 'Cyber Teal', value: '#35d5bf' },
@@ -36,6 +37,7 @@ export default function Navbar({
 }) {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const colorPickerRef = useRef(null);
+  const isNative = Capacitor.isNativePlatform();
 
   useEffect(() => {
     const handleOutsideClick = (e) => {
@@ -140,17 +142,19 @@ export default function Navbar({
             <span className="search-shortcut-badge">/</span>
           </button>
 
-          {/* Visible APK download badge/button */}
-          <a
-            href="/assets/OtakuPlay.apk"
-            download="OtakuPlay.apk"
-            className="apk-nav-badge"
-            title="Download Dedicated Android App (OtakuPlay.apk)"
-            aria-label="Download Android App APK"
-          >
-            <Smartphone size={14} />
-            <span>APK</span>
-          </a>
+          {/* Visible APK download badge/button (Desktop / Web only, omitted in native app and on mobile) */}
+          {!isNative && (
+            <a
+              href="/assets/OtakuPlay.apk"
+              download="OtakuPlay.apk"
+              className="apk-nav-badge"
+              title="Download Dedicated Android App v1.0.0 (OtakuPlay.apk)"
+              aria-label="Download Android App APK"
+            >
+              <Smartphone size={14} />
+              <span>APK</span>
+            </a>
+          )}
 
           {/* Accent Color Switcher */}
           <div style={{ position: 'relative' }} ref={colorPickerRef}>
