@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Play, Info, Star, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Play, Info, Star, Sparkles } from 'lucide-react';
+
+const AUTOPLAY_MS = 7000;
+const SWIPE_MIN_PX = 50;
 
 export default function HeroBanner({ 
   featuredList = [], 
@@ -7,30 +10,66 @@ export default function HeroBanner({
   onViewDetails 
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const touchStartRef = useRef(null);
+  const count = featuredList.length;
 
+  // Auto-advance. Restarts after every manual change and pauses while a finger is down.
   useEffect(() => {
-    if (!featuredList.length) return;
-    const timer = setInterval(() => {
-      setCurrentIndex(prev => (prev + 1) % featuredList.length);
-    }, 7000);
-    return () => clearInterval(timer);
-  }, [featuredList.length]);
+    if (count < 2 || paused) return;
+    const timer = setTimeout(() => {
+      setCurrentIndex(prev => (prev + 1) % count);
+    }, AUTOPLAY_MS);
+    return () => clearTimeout(timer);
+  }, [count, currentIndex, paused]);
 
-  if (!featuredList.length) return null;
+  if (!count) return null;
 
-  const current = featuredList[currentIndex];
+  const handleTouchStart = (e) => {
+    const t = e.touches[0];
+    touchStartRef.current = { x: t.clientX, y: t.clientY };
+    setPaused(true);
+  };
+
+  const handleTouchEnd = (e) => {
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    setPaused(false);
+    if (!start || count < 2) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.abs(dx) >= SWIPE_MIN_PX && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      setCurrentIndex(prev => (prev + (dx < 0 ? 1 : -1) + count) % count);
+    }
+  };
+
+  const handleTouchCancel = () => {
+    touchStartRef.current = null;
+    setPaused(false);
+  };
+
+  const current = featuredList[currentIndex] || featuredList[0];
   const title = current.title?.english || current.title?.romaji || 'Anime';
   const banner = current.bannerImage || current.coverImage?.extraLarge || current.coverImage?.large;
   const score = current.averageScore ? (current.averageScore / 10).toFixed(1) : '9.2';
 
   return (
-    <div className="hero-container">
+    <div
+      className="hero-container"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
+    >
       {/* Background Banner Image */}
       <img 
         src={banner} 
-        alt={title} 
+        alt="" 
         className="hero-backdrop-img"
         key={current.id}
+        fetchPriority="high"
+        decoding="async"
+        draggable={false}
       />
       <div className="hero-gradient-overlay" />
 
@@ -51,16 +90,16 @@ export default function HeroBanner({
             </span>
           )}
           {current.episodes && (
-            <span className="badge">
+            <span className="badge hide-on-mobile">
               {current.episodes} Episodes
             </span>
           )}
           {current.seasonYear && (
-            <span className="badge">
+            <span className="badge hide-on-mobile">
               {current.seasonYear}
             </span>
           )}
-          <span className="badge" style={{ color: 'var(--accent-color)', borderColor: 'var(--accent-color)' }}>
+          <span className="badge hide-on-mobile" style={{ color: 'var(--accent-color)', borderColor: 'var(--accent-color)' }}>
             SUB · DUB
           </span>
         </div>
@@ -74,7 +113,7 @@ export default function HeroBanner({
         </p>
 
         {current.genres && (
-          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+          <div className="hero-genres hide-on-mobile">
             {current.genres.slice(0, 4).map(genre => (
               <span key={genre} style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                 #{genre}
@@ -89,7 +128,7 @@ export default function HeroBanner({
             onClick={() => onWatch(current, 1)}
           >
             <Play size={18} fill="currentColor" />
-            <span>Watch Now (Ep 1)</span>
+            <span>Watch Now<span className="hide-on-mobile"> (Ep 1)</span></span>
           </button>
 
           <button 
@@ -97,28 +136,26 @@ export default function HeroBanner({
             onClick={() => onViewDetails(current)}
           >
             <Info size={18} />
-            <span>Characters & Info</span>
+            <span><span className="hide-on-mobile">Characters & </span>Info</span>
           </button>
         </div>
 
         {/* Carousel Slide Indicators */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem' }}>
-          {featuredList.map((item, idx) => (
-            <button
-              key={item.id}
-              onClick={() => setCurrentIndex(idx)}
-              style={{
-                width: idx === currentIndex ? '28px' : '8px',
-                height: '8px',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: idx === currentIndex ? 'var(--accent-color)' : 'rgba(255,255,255,0.3)',
-                transition: 'all 0.3s ease',
-                boxShadow: idx === currentIndex ? '0 0 10px var(--accent-glow)' : 'none'
-              }}
-              title={`Slide ${idx + 1}`}
-            />
-          ))}
-        </div>
+        {count > 1 && (
+          <div className="hero-dots" role="tablist" aria-label="Featured anime">
+            {featuredList.map((item, idx) => (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={idx === currentIndex}
+                aria-label={`Show featured anime ${idx + 1}`}
+                className={`hero-dot ${idx === currentIndex ? 'active' : ''}`}
+                onClick={() => setCurrentIndex(idx)}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

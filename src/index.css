@@ -203,8 +203,9 @@ button {
 }
 
 .brand-logo .logo-text {
-  background: linear-gradient(90deg, #fff 40%, var(--accent-color));
+  background: linear-gradient(90deg, var(--text-main) 40%, var(--accent-color));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -309,8 +310,6 @@ button {
   height: 100%;
   object-fit: cover;
   object-position: center 25%;
-  transform: scale(1.02);
-  transition: transform 6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .hero-gradient-overlay {
@@ -554,8 +553,7 @@ button {
   bottom: 0.6rem;
   right: 0.6rem;
   z-index: 2;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.8);
   color: #fbbf24;
   font-family: var(--font-mono);
   font-size: 0.75rem;
@@ -572,7 +570,6 @@ button {
   position: absolute;
   inset: 0;
   background: rgba(7, 8, 13, 0.6);
-  backdrop-filter: blur(4px);
   display: grid;
   place-items: center;
   opacity: 0;
@@ -952,9 +949,7 @@ button {
 
 /* Streamlined Player Control Toolbar */
 .player-controls-toolbar {
-  background: rgba(18, 22, 34, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 0.55rem 0.85rem;
@@ -1198,7 +1193,7 @@ button {
   background: transparent;
   border: none;
   color: var(--text-main);
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 0.82rem;
   font-weight: 700;
   width: 100%;
@@ -1699,9 +1694,7 @@ button {
     left: 0;
     right: 0;
     z-index: 120;
-    background: rgba(10, 13, 20, 0.94);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: var(--bg-surface);
     border-top: 1px solid var(--border-subtle);
     padding: 0.4rem 0.5rem calc(0.4rem + env(safe-area-inset-bottom, 0px));
     justify-content: space-around;
@@ -2262,8 +2255,7 @@ button {
   position: absolute;
   top: 4px;
   left: 4px;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: var(--accent-color);
   font-family: var(--font-mono);
@@ -2459,3 +2451,941 @@ button {
   }
 }
 
+
+/* ========================================================================== */
+/* SEARCH MODAL (these class names were used by SearchModal.jsx but undefined) */
+/* ========================================================================== */
+.search-sheet {
+  height: min(85vh, 760px);
+  height: min(85dvh, 760px);
+}
+
+.search-input-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.search-icon-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: var(--accent-soft);
+  color: var(--accent-color);
+}
+
+.search-input-header .search-main-input {
+  min-width: 0;
+  height: 44px;
+  font-size: 1.05rem;
+}
+
+.search-input-header .icon-btn {
+  flex-shrink: 0;
+}
+
+.search-genre-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.search-genre-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.genre-pill {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.genre-pill-sm {
+  padding: 0.4rem 0.9rem;
+  font-size: 0.78rem;
+}
+
+.search-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.search-status-note {
+  color: var(--accent-color);
+  white-space: nowrap;
+}
+
+.search-sheet .search-results-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0.25rem 0.75rem 0.75rem;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  transition: opacity var(--transition-fast);
+}
+
+.search-results-list.is-refreshing {
+  opacity: 0.55;
+}
+
+.search-result-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.6rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.search-result-card:active {
+  transform: scale(0.985);
+  background: var(--bg-surface-elevated);
+}
+
+.search-card-poster-wrap {
+  position: relative;
+  width: 56px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg-main);
+}
+
+.search-card-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* The season count is already shown as a badge next to the title */
+.search-card-season-pill {
+  display: none;
+}
+
+.search-card-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.search-card-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.search-card-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.search-card-title-row .badge {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.search-card-seasons-scroll {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.search-card-seasons-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.search-card-season-chip {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-sm);
+  background: var(--badge-bg);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+}
+
+.search-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.4rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.search-card-watch-btn {
+  flex-shrink: 0;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.78rem;
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  .search-result-card:hover {
+    background: var(--bg-surface-elevated);
+    border-color: var(--border-highlight);
+  }
+}
+
+@media (max-width: 640px) {
+  .search-modal-box {
+    animation: sheetUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .search-sheet {
+    height: 92vh;
+    height: 92dvh;
+  }
+
+  /* Bottom sheet grabber */
+  .search-sheet::before {
+    content: '';
+    display: block;
+    width: 38px;
+    height: 4px;
+    margin: 8px auto 0;
+    border-radius: var(--radius-full);
+    background: var(--border-card);
+    flex-shrink: 0;
+  }
+
+  .search-input-header {
+    padding: 0.5rem 0.75rem 0.65rem;
+  }
+
+  .search-input-header .search-main-input {
+    font-size: 1rem;
+  }
+
+  .search-genre-bar {
+    padding: 0.6rem 0.75rem;
+  }
+
+  .search-status-bar {
+    padding: 0.45rem 0.75rem;
+  }
+
+  .search-sheet .search-results-list {
+    padding: 0.25rem 0.5rem calc(0.75rem + var(--sab));
+  }
+
+  .search-card-seasons-scroll {
+    display: none;
+  }
+
+  .search-card-poster-wrap {
+    width: 52px;
+    height: 74px;
+  }
+
+  .search-card-watch-btn {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: var(--radius-full);
+    justify-content: center;
+  }
+
+  .search-watch-text {
+    display: none;
+  }
+}
+
+@keyframes sheetUp {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* ========================================================================== */
+/* MOBILE / TOUCH OPTIMISATION LAYER                                           */
+/* ========================================================================== */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+button,
+a,
+[role='button'],
+input,
+select {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+input:focus-visible {
+  outline: none;
+}
+
+/* Stop the page scrolling behind an open modal / sheet */
+body:has(.search-modal-backdrop) {
+  overflow: hidden;
+}
+
+.search-modal-backdrop {
+  overscroll-behavior: contain;
+}
+
+.detail-modal-banner-wrap {
+  flex-shrink: 0;
+}
+
+.detail-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+
+.download-modal-body {
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.download-modal-header {
+  flex-shrink: 0;
+}
+
+.characters-roster-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+}
+
+.seasons-tab-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
+}
+
+.va-info {
+  min-width: 0;
+  max-width: 45%;
+}
+
+.va-details {
+  min-width: 0;
+}
+
+.va-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-touch-play {
+  display: none;
+}
+
+.section-link {
+  display: none;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.5rem 0.25rem 0.5rem 0.75rem;
+  color: var(--accent-color);
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.hero-genres {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.hero-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.hero-dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.35);
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.hero-dot::after {
+  /* enlarges the tap target without changing the visual size */
+  content: '';
+  position: absolute;
+  inset: -14px -6px;
+}
+
+.hero-dot.active {
+  width: 28px;
+  background: var(--accent-color);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.hero-backdrop-img {
+  animation: heroFade 0.6s ease;
+}
+
+@keyframes heroFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.hero-container {
+  touch-action: pan-y;
+}
+
+/* Skeleton loaders */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-surface-elevated) 40%, var(--bg-surface) 60%);
+  background-size: 300% 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: var(--radius-md);
+}
+
+.skeleton-card {
+  flex: 0 0 200px;
+  width: 200px;
+  aspect-ratio: 2 / 3.35;
+}
+
+.skeleton-hero {
+  border-radius: 0;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: -100% 0;
+  }
+}
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+[data-theme='light'] .apk-feature-banner {
+  background: linear-gradient(135deg, #ffffff, #f1f5f9);
+  box-shadow: var(--shadow-md);
+}
+
+/* ---- Mouse devices only: hover effects ---- */
+@media (hover: none) {
+  .anime-card:hover,
+  .continue-card:hover,
+  .download-card:hover,
+  .character-card:hover,
+  .season-tab-card:hover,
+  .btn-primary:hover,
+  .btn-secondary:hover {
+    transform: none;
+  }
+
+  .anime-card:hover {
+    border-color: var(--border-subtle);
+    box-shadow: none;
+  }
+
+  .anime-card:hover .card-poster {
+    transform: none;
+  }
+
+  .card-quick-play {
+    display: none;
+  }
+
+  .anime-card:active,
+  .continue-card:active,
+  .download-card:active {
+    transform: scale(0.97);
+  }
+
+  .card-touch-play {
+    position: absolute;
+    left: 0.5rem;
+    bottom: 0.5rem;
+    z-index: 4;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-full);
+    background: var(--accent-color);
+    color: var(--text-inverse);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  }
+
+  .anime-card,
+  .continue-card {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+/* ---- Touch targets ---- */
+@media (pointer: coarse) {
+  .icon-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .nav-actions .icon-btn,
+  .search-trigger-btn {
+    min-width: 42px;
+    min-height: 42px;
+  }
+
+  .genre-pill {
+    min-height: 40px;
+  }
+
+  .genre-pill-sm {
+    min-height: 36px;
+  }
+
+  .continue-remove-btn {
+    padding: 0.7rem;
+    margin: -0.4rem;
+  }
+
+  .segmented-btn,
+  .pill-toggle-btn,
+  .range-tab {
+    min-height: 36px;
+  }
+
+  .quick-step-btn {
+    width: 40px;
+    height: 36px;
+  }
+
+  .player-action-btn,
+  .player-back-btn {
+    min-height: 40px;
+  }
+
+  .player-tab-btn {
+    min-height: 40px;
+  }
+
+  /* 16px+ stops iOS zooming the page on focus */
+  input,
+  select,
+  textarea,
+  .ep-quick-jump input,
+  .season-select {
+    font-size: 16px;
+  }
+}
+
+/* ---- Phones ---- */
+@media (max-width: 768px) {
+  .main-content {
+    padding-bottom: 0;
+  }
+
+  .navbar {
+    padding-top: max(0.4rem, var(--sat));
+    padding-bottom: 0.4rem;
+  }
+
+  .navbar-inner {
+    height: auto;
+    min-height: 44px;
+  }
+
+  .player-toast {
+    left: 1rem;
+    right: 1rem;
+    bottom: calc(76px + var(--sab));
+  }
+
+  .view-player .player-toast {
+    bottom: calc(1rem + var(--sab));
+  }
+
+  /* Player: no site nav while watching (the player has its own back button) */
+  .view-player .navbar,
+  .view-player .mobile-bottom-nav {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  .section-title {
+    font-size: 1.15rem;
+  }
+
+  .section-header {
+    margin-bottom: 1rem;
+    gap: 0.5rem;
+  }
+
+  .section-link {
+    display: inline-flex;
+    margin-left: auto;
+  }
+
+  /* Edge-to-edge rows that still line up with the page gutter */
+  .section-wrapper .carousel-row,
+  .detail-modal-body .carousel-row {
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+    scroll-padding-inline: 1rem;
+    gap: 0.85rem;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+
+  .carousel-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .skeleton-card {
+    flex: 0 0 140px;
+    width: 140px;
+  }
+
+  /* One swipeable row of genres instead of 4+ wrapped rows */
+  .genre-pills-wrap {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+    padding-bottom: 0.25rem;
+    scrollbar-width: none;
+  }
+
+  .genre-pills-wrap::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hero-container {
+    height: 56vh;
+    height: 56dvh;
+    min-height: 420px;
+  }
+
+  .hero-actions .btn-primary,
+  .hero-actions .btn-secondary {
+    flex: 1;
+    justify-content: center;
+    min-height: 46px;
+    white-space: nowrap;
+  }
+
+  .hero-dots {
+    margin-top: 0.5rem;
+  }
+
+  .detail-modal-body {
+    padding-bottom: calc(1.5rem + var(--sab));
+  }
+
+  .detail-modal-actions .btn-primary {
+    flex-basis: 100%;
+  }
+
+  .detail-modal-close-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .va-avatar {
+    display: none;
+  }
+
+  .download-modal-body {
+    padding: 1rem 1rem calc(1rem + var(--sab));
+  }
+
+  .download-modal-header {
+    padding: 0.9rem 1rem;
+  }
+
+  .download-modal-box .segmented-btn {
+    min-width: 0;
+    padding: 0.55rem 0.2rem !important;
+    font-size: 0.66rem;
+  }
+
+  .app-footer {
+    padding: 1.5rem 1rem;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .footer-tags {
+    gap: 0.35rem 0.9rem;
+    font-size: 0.72rem;
+  }
+}
+
+/* ---- Brand + 3 icon buttons must fit 320-360px wide screens ---- */
+@media (max-width: 400px) {
+  .brand-logo {
+    font-size: 1.05rem;
+    gap: 0.4rem;
+  }
+
+  .brand-logo .logo-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .nav-actions {
+    gap: 0.25rem;
+  }
+}
+
+/* ---- Player on small screens ---- */
+@media (max-width: 920px) {
+  .player-page-container {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  /* Flatten the column so the episode list can sit right under the controls */
+  .player-main-col {
+    display: contents;
+  }
+
+  .player-header-bar {
+    order: 1;
+  }
+
+  .video-frame-container {
+    order: 2;
+  }
+
+  .player-controls-toolbar {
+    order: 3;
+  }
+
+  .player-sidebar-col {
+    order: 4;
+  }
+
+  .player-info-card {
+    order: 5;
+  }
+
+  .player-header-bar {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+  }
+
+  .player-header-left {
+    flex: 1;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+  }
+
+  .player-back-btn {
+    padding: 0.55rem;
+    flex-shrink: 0;
+  }
+
+  .player-back-btn span,
+  .player-theater-btn,
+  .toolbar-download-btn,
+  .player-breadcrumb-sep {
+    display: none;
+  }
+
+  .player-title-breadcrumbs {
+    flex: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+  }
+
+  .player-anime-name {
+    max-width: 100%;
+    font-size: 0.92rem;
+  }
+
+  .player-header-right {
+    flex-shrink: 0;
+    gap: 0.35rem;
+  }
+
+  .player-action-btn {
+    min-width: 40px;
+    min-height: 40px;
+    justify-content: center;
+  }
+
+  .video-frame-container {
+    max-height: none;
+  }
+
+  .player-controls-toolbar {
+    padding: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  /* Track / Server / Source stay on one swipeable line */
+  .player-controls-left {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    gap: 0.85rem;
+    scrollbar-width: none;
+  }
+
+  .player-controls-left::-webkit-scrollbar {
+    display: none;
+  }
+
+  .control-group {
+    flex-shrink: 0;
+  }
+
+  .player-controls-right {
+    flex-wrap: wrap;
+  }
+
+  .player-info-card {
+    padding: 1rem;
+  }
+
+  .player-tabs-nav {
+    scrollbar-width: none;
+  }
+
+  .player-tabs-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .episodes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  /* Video pins to the top while episodes / info scroll underneath */
+  .video-frame-container {
+    position: sticky;
+    top: var(--sat);
+    z-index: 30;
+    width: auto;
+    margin-inline: -0.5rem;
+    border-radius: 0;
+    border-inline: none;
+    /* paints the page background in the safe-area gap above the pinned video */
+    box-shadow: 0 calc(var(--sat) * -1) 0 0 var(--bg-main);
+  }
+}
+
+@media (max-width: 540px) {
+  .pill-toggle-btn svg {
+    display: none;
+  }
+}
+
+/* ---- Landscape phones: video takes the whole screen, controls are below ---- */
+@media (orientation: landscape) and (max-height: 500px) {
+  .view-player .video-frame-container {
+    position: relative;
+    top: 0;
+    aspect-ratio: auto;
+    width: auto;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    margin-inline: -0.5rem;
+  }
+
+  .view-player .player-header-bar {
+    order: 3;
+  }
+
+  .view-player .player-page-container {
+    margin-top: 0;
+  }
+
+  /* No bars in landscape: they would eat a third of the screen */
+  .view-player .mobile-bottom-nav,
+  .view-player .navbar {
+    display: none !important;
+  }
+
+  .view-player .app-footer {
+    padding-bottom: 1.5rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

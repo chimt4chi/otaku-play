@@ -1,6 +1,8 @@
 import React from 'react';
 import { Download, Play, Trash2, HardDrive, Film, ArrowRight, ShieldCheck, Sparkles, Smartphone, ExternalLink } from 'lucide-react';
-import { clearAllDownloads } from '../services/storage';
+import { Capacitor } from '@capacitor/core';
+
+const isNativeApp = Capacitor.isNativePlatform();
 
 export default function DownloadsView({
   downloads = [],
@@ -33,7 +35,11 @@ export default function DownloadsView({
           <button
             type="button"
             className="btn-secondary"
-            onClick={onClearAllDownloads}
+            onClick={() => {
+              if (window.confirm(`Remove all ${downloads.length} offline ${downloads.length === 1 ? 'episode' : 'episodes'}?`)) {
+                onClearAllDownloads();
+              }
+            }}
             style={{ padding: '0.45rem 0.85rem', fontSize: '0.78rem', color: '#fb7185' }}
             title="Delete all downloaded episodes"
           >
@@ -43,7 +49,8 @@ export default function DownloadsView({
         )}
       </div>
 
-      {/* Dedicated Android App APK Feature Card */}
+      {/* Dedicated Android App APK Feature Card (pointless inside the installed app) */}
+      {!isNativeApp && (
       <div className="apk-feature-banner">
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
           <div className="apk-banner-icon">
@@ -83,6 +90,7 @@ export default function DownloadsView({
           </a>
         </div>
       </div>
+      )}
 
       {/* Downloads List */}
       {downloads.length === 0 ? (
@@ -112,7 +120,7 @@ export default function DownloadsView({
             return (
               <div key={item.id} className="download-card">
                 <div className="download-card-thumb-wrap">
-                  <img src={thumb} alt={title} className="download-card-thumb" loading="lazy" />
+                  <img src={thumb} alt="" className="download-card-thumb" loading="lazy" decoding="async" />
                   <div className="card-quick-play">
                     <button
                       type="button"
@@ -141,10 +149,10 @@ export default function DownloadsView({
 
                     <button
                       type="button"
-                      className="icon-btn"
                       onClick={() => onRemoveDownload(item.animeId, item.episode)}
                       title="Remove from offline storage"
-                      style={{ width: '30px', height: '30px', flexShrink: 0 }}
+                      aria-label={`Remove ${title} episode ${item.episode} from offline storage`}
+                      className="icon-btn download-remove-btn"
                     >
                       <Trash2 size={14} color="#fb7185" />
                     </button>

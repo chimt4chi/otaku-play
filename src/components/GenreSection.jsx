@@ -30,7 +30,7 @@ export default function GenreSection({ onWatch, onViewDetails }) {
           <div className="section-indicator" />
           <h2 className="section-title">Watch By Genre</h2>
         </div>
-        <div className="section-subtitle">
+        <div className="section-subtitle hide-on-mobile">
           <Layers size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
           Explore top picks by themes
         </div>

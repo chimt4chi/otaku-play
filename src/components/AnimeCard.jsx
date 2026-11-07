@@ -1,26 +1,41 @@
 import React from 'react';
-import { Play, Star, Plus, Check } from 'lucide-react';
+import { Play, Star } from 'lucide-react';
 
 export default function AnimeCard({
   anime,
   onWatch,
   onViewDetails,
-  onToggleWatchlist,
-  isBookmarked = false,
   ranking = null
 }) {
   const title = anime.title?.english || anime.title?.romaji || 'Anime';
   const poster = anime.coverImage?.large || anime.coverImage?.extraLarge || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600';
   const score = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : null;
 
+  const handleKeyDown = (e) => {
+    if (e.target !== e.currentTarget) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onViewDetails(anime);
+    }
+  };
+
   return (
-    <div className="anime-card" onClick={() => onViewDetails(anime)}>
+    <div
+      className="anime-card"
+      role="button"
+      tabIndex={0}
+      aria-label={`${title}. View details`}
+      onClick={() => onViewDetails(anime)}
+      onKeyDown={handleKeyDown}
+    >
       <div className="card-poster-wrap">
         <img
           src={poster}
-          alt={title}
+          alt=""
           className="card-poster"
           loading="lazy"
+          decoding="async"
+          draggable={false}
         />
 
         {/* Ranking or Format badge */}
@@ -48,7 +63,7 @@ export default function AnimeCard({
           </div>
         )}
 
-        {/* Quick Play Hover Button */}
+        {/* Quick Play Hover Button (mouse devices) */}
         <div className="card-quick-play">
           <button
             className="card-quick-play-btn"
@@ -57,10 +72,24 @@ export default function AnimeCard({
               onWatch(anime, 1);
             }}
             title="Play Episode 1"
+            aria-label={`Play ${title} episode 1`}
           >
             <Play size={20} fill="currentColor" style={{ marginLeft: '2px' }} />
           </button>
         </div>
+
+        {/* Always-visible play shortcut (touch devices, where hover does not exist) */}
+        <button
+          type="button"
+          className="card-touch-play"
+          onClick={(e) => {
+            e.stopPropagation();
+            onWatch(anime, 1);
+          }}
+          aria-label={`Play ${title} episode 1`}
+        >
+          <Play size={16} fill="currentColor" style={{ marginLeft: '2px' }} />
+        </button>
       </div>
 
       <div className="card-body">

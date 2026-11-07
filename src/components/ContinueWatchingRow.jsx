@@ -15,7 +15,7 @@ export default function ContinueWatchingRow({
           <div className="section-indicator" />
           <h2 className="section-title">Continue Watching</h2>
         </div>
-        <div className="section-subtitle">
+        <div className="section-subtitle hide-on-mobile">
           <Clock size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
           Pick up where you left off
         </div>
@@ -31,10 +31,20 @@ export default function ContinueWatchingRow({
             <div 
               key={`${item.id}-${item.episode}`} 
               className="continue-card"
+              role="button"
+              tabIndex={0}
+              aria-label={`Resume ${title}, episode ${item.episode}`}
               onClick={() => onResume(item, item.episode, item.currentTime)}
+              onKeyDown={(e) => {
+                if (e.target !== e.currentTarget) return;
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onResume(item, item.episode, item.currentTime);
+                }
+              }}
             >
               <div className="continue-thumb-wrap">
-                <img src={thumb} alt={title} className="continue-thumb" loading="lazy" />
+                <img src={thumb} alt="" className="continue-thumb" loading="lazy" decoding="async" draggable={false} />
                 <div className="card-quick-play">
                   <div className="card-quick-play-btn">
                     <Play size={18} fill="currentColor" style={{ marginLeft: '2px' }} />
@@ -61,6 +71,7 @@ export default function ContinueWatchingRow({
                     onRemove(item.id);
                   }}
                   title="Remove from history"
+                  aria-label={`Remove ${title} from history`}
                 >
                   <X size={16} />
                 </button>

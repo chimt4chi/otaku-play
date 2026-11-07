@@ -45,14 +45,18 @@ export default function AnimeDetailModal({
     <div className="search-modal-backdrop" onClick={onClose}>
       <div
         className="search-modal-box detail-modal-box"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
         onClick={e => e.stopPropagation()}
       >
         {/* Header with Banner Image */}
         <div className="detail-modal-banner-wrap">
           <img
             src={banner}
-            alt={title}
+            alt=""
             className="detail-modal-banner"
+            decoding="async"
           />
           <div className="detail-modal-banner-gradient" />
 
@@ -117,6 +121,7 @@ export default function AnimeDetailModal({
                   className="btn-secondary"
                   onClick={() => setIsDownloadOpen(true)}
                   title="Download episode offline"
+                  aria-label="Download episode offline"
                 >
                   <Download size={16} />
                   <span>Download</span>

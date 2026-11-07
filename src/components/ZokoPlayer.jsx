@@ -570,7 +570,7 @@ export default function ZokoPlayer({
             </button>
 
             <button
-              className={`player-action-btn ${theaterMode ? 'active' : ''}`}
+              className={`player-action-btn player-theater-btn ${theaterMode ? 'active' : ''}`}
               onClick={() => setTheaterMode(!theaterMode)}
               title={theaterMode ? 'Exit Cinema Theater View' : 'Cinema Theater View'}
               aria-label="Toggle theater mode"
@@ -785,9 +785,9 @@ export default function ZokoPlayer({
               <span className={`pill-dot ${autoNext ? 'on' : ''}`} />
             </button>
 
-            {/* Fullscreen Button */}
+            {/* Download shortcut (the header already has one; hidden on small screens) */}
             <button
-              className="icon-btn"
+              className="icon-btn toolbar-download-btn"
               onClick={() => setIsDownloadOpen(true)}
               title="Download Episode for Offline Watching"
               aria-label="Download Episode"
@@ -795,6 +795,7 @@ export default function ZokoPlayer({
               <Download size={16} />
             </button>
 
+            {/* Fullscreen Button */}
             <button
               className="icon-btn"
               onClick={handleToggleFullscreen}
@@ -851,7 +852,7 @@ export default function ZokoPlayer({
           {/* Tab 1: Overview */}
           {infoTab === 'overview' && (
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.85rem', marginBottom: '0.75rem' }}>
+              <div className="player-overview-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.85rem', marginBottom: '0.75rem' }}>
                 <div>
                   <h1 style={{ fontSize: 'clamp(1.2rem, 3vw, 1.45rem)', fontWeight: 800, textTransform: 'uppercase' }}>
                     {title}
@@ -1179,7 +1180,7 @@ export default function ZokoPlayer({
         </div>
 
         {/* Quick Anime Specs Card */}
-        <div className="episode-sidebar-card" style={{ marginTop: '0.75rem' }}>
+        <div className="episode-sidebar-card player-specs-card" style={{ marginTop: '0.75rem' }}>
           <div className="sidebar-header">
             <span className="sidebar-title" style={{ fontSize: '0.85rem' }}>Details & Specs</span>
             <Info size={15} color="var(--text-dim)" />

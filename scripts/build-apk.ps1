@@ -11,7 +11,7 @@ if (-not $env:JAVA_HOME -or ($env:JAVA_HOME -like "*17*")) {
 }
 
 Write-Host "==> Building web assets..."
-npm run build
+npm run build:native
 
 Write-Host "==> Syncing Capacitor with Android..."
 npx cap sync android

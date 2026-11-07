@@ -8,14 +8,48 @@ import {
   getPopularAnime, 
   getTopRatedAnime 
 } from '../services/api';
-import { Flame, Star, Sparkles, Compass } from 'lucide-react';
+import { Flame, Star, Sparkles, ChevronRight } from 'lucide-react';
+
+function CardRowSkeleton({ count = 6 }) {
+  return (
+    <div className="carousel-row" aria-hidden="true">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="skeleton skeleton-card" />
+      ))}
+    </div>
+  );
+}
+
+function SectionHeader({ title, icon: Icon, subtitle, onSeeAll }) {
+  return (
+    <div className="section-header">
+      <div className="section-title-group">
+        <div className="section-indicator" />
+        <h2 className="section-title">{title}</h2>
+      </div>
+      {subtitle && (
+        <div className="section-subtitle hide-on-mobile">
+          <Icon size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+          {subtitle}
+        </div>
+      )}
+      {onSeeAll && (
+        <button type="button" className="section-link" onClick={onSeeAll}>
+          <span>See all</span>
+          <ChevronRight size={14} />
+        </button>
+      )}
+    </div>
+  );
+}
 
 export default function HomeView({
   continueWatchingList = [],
   onResumeWatching,
   onRemoveContinueWatching,
   onWatchAnime,
-  onViewDetails
+  onViewDetails,
+  onNavigate
 }) {
   const [trending, setTrending] = useState([]);
   const [popular, setPopular] = useState([]);
@@ -45,11 +79,15 @@ export default function HomeView({
   return (
     <div>
       {/* Hero Featured Carousel Banner */}
-      <HeroBanner 
-        featuredList={trending.length > 0 ? trending.slice(0, 5) : []}
-        onWatch={onWatchAnime}
-        onViewDetails={onViewDetails}
-      />
+      {loading ? (
+        <div className="hero-container skeleton skeleton-hero" aria-hidden="true" />
+      ) : (
+        <HeroBanner 
+          featuredList={trending.length > 0 ? trending.slice(0, 5) : []}
+          onWatch={onWatchAnime}
+          onViewDetails={onViewDetails}
+        />
+      )}
 
       {/* Continue Watching Section */}
       <ContinueWatchingRow 
@@ -65,80 +103,79 @@ export default function HomeView({
       />
 
       {/* Popular Anime Section */}
-      <div className="section-wrapper">
-        <div className="section-header">
-          <div className="section-title-group">
-            <div className="section-indicator" />
-            <h2 className="section-title">Popular Anime</h2>
-          </div>
-          <div className="section-subtitle">
-            <Flame size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-            Most watched by the community
-          </div>
-        </div>
+      {(loading || popular.length > 0) && (
+        <div className="section-wrapper">
+          <SectionHeader
+            title="Popular Anime"
+            icon={Flame}
+            subtitle="Most watched by the community"
+            onSeeAll={() => onNavigate?.('popular')}
+          />
 
-        <div className="carousel-row">
-          {popular.map((anime, idx) => (
-            <AnimeCard 
-              key={anime.id} 
-              anime={anime} 
-              ranking={idx + 1}
-              onWatch={onWatchAnime} 
-              onViewDetails={onViewDetails} 
-            />
-          ))}
+          {loading ? <CardRowSkeleton /> : (
+            <div className="carousel-row">
+              {popular.map((anime, idx) => (
+                <AnimeCard 
+                  key={anime.id} 
+                  anime={anime} 
+                  ranking={idx + 1}
+                  onWatch={onWatchAnime} 
+                  onViewDetails={onViewDetails} 
+                />
+              ))}
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
       {/* Top Anime Section */}
-      <div className="section-wrapper">
-        <div className="section-header">
-          <div className="section-title-group">
-            <div className="section-indicator" />
-            <h2 className="section-title">Top Rated Anime</h2>
-          </div>
-          <div className="section-subtitle">
-            <Star size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-            Highest scored masterpieces of all time
-          </div>
-        </div>
+      {(loading || topRated.length > 0) && (
+        <div className="section-wrapper">
+          <SectionHeader
+            title="Top Rated Anime"
+            icon={Star}
+            subtitle="Highest scored masterpieces of all time"
+            onSeeAll={() => onNavigate?.('top')}
+          />
 
-        <div className="carousel-row">
-          {topRated.map(anime => (
-            <AnimeCard 
-              key={anime.id} 
-              anime={anime} 
-              onWatch={onWatchAnime} 
-              onViewDetails={onViewDetails} 
-            />
-          ))}
+          {loading ? <CardRowSkeleton /> : (
+            <div className="carousel-row">
+              {topRated.map(anime => (
+                <AnimeCard 
+                  key={anime.id} 
+                  anime={anime} 
+                  onWatch={onWatchAnime} 
+                  onViewDetails={onViewDetails} 
+                />
+              ))}
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
       {/* Trending Now Row */}
-      <div className="section-wrapper">
-        <div className="section-header">
-          <div className="section-title-group">
-            <div className="section-indicator" />
-            <h2 className="section-title">Trending This Season</h2>
-          </div>
-          <div className="section-subtitle">
-            <Sparkles size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-            Hot releases buzzing right now
-          </div>
-        </div>
+      {(loading || trending.length > 0) && (
+        <div className="section-wrapper">
+          <SectionHeader
+            title="Trending This Season"
+            icon={Sparkles}
+            subtitle="Hot releases buzzing right now"
+          />
 
-        <div className="carousel-row">
-          {trending.map(anime => (
-            <AnimeCard 
-              key={anime.id} 
-              anime={anime} 
-              onWatch={onWatchAnime} 
-              onViewDetails={onViewDetails} 
-            />
-          ))}
+          {loading ? <CardRowSkeleton /> : (
+            <div className="carousel-row">
+              {trending.map(anime => (
+                <AnimeCard 
+                  key={anime.id} 
+                  anime={anime} 
+                  onWatch={onWatchAnime} 
+                  onViewDetails={onViewDetails} 
+                />
+              ))}
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

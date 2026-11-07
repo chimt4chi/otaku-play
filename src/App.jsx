@@ -1,15 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import Navbar from './components/Navbar';
 import MobileBottomNav from './components/MobileBottomNav';
 import HomeView from './views/HomeView';
-import GenresView from './views/GenresView';
-import PopularView from './views/PopularView';
-import TopView from './views/TopView';
-import WatchlistView from './views/WatchlistView';
-import DownloadsView from './views/DownloadsView';
-import ZokoPlayer from './components/ZokoPlayer';
-import AnimeDetailModal from './components/AnimeDetailModal';
-import SearchModal from './components/SearchModal';
 import {
   getContinueWatchingList,
   updateContinueWatching,
@@ -25,7 +17,28 @@ import {
   clearAllDownloads
 } from './services/storage';
 import { App as CapApp } from '@capacitor/app';
-import { Smartphone, Download } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { Smartphone } from 'lucide-react';
+
+// Everything except the home screen is split out of the initial bundle
+const GenresView = lazy(() => import('./views/GenresView'));
+const PopularView = lazy(() => import('./views/PopularView'));
+const TopView = lazy(() => import('./views/TopView'));
+const WatchlistView = lazy(() => import('./views/WatchlistView'));
+const DownloadsView = lazy(() => import('./views/DownloadsView'));
+const ZokoPlayer = lazy(() => import('./components/ZokoPlayer'));
+const AnimeDetailModal = lazy(() => import('./components/AnimeDetailModal'));
+const SearchModal = lazy(() => import('./components/SearchModal'));
+
+const isNativeApp = Capacitor.isNativePlatform();
+
+function ViewFallback() {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem 1rem' }} role="status" aria-label="Loading">
+      <div className="player-spinner" />
+    </div>
+  );
+}
 
 export default function App() {
   const [currentView, setCurrentView] = useState('home');
@@ -88,6 +101,11 @@ export default function App() {
     };
   }, [isSearchOpen, detailAnime, currentView]);
 
+  // Always start a new screen at the top
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentView]);
+
   // Global keyboard shortcut for search
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -144,7 +162,7 @@ export default function App() {
   const isBookmarked = (id) => watchlist.some(item => item.id === id);
 
   return (
-    <div className="app-container">
+    <div className={`app-container view-${currentView}`}>
       {/* Global Navigation Bar */}
       <Navbar
         currentView={currentView}
@@ -167,9 +185,11 @@ export default function App() {
             onRemoveContinueWatching={handleRemoveContinueWatching}
             onWatchAnime={handleWatchAnime}
             onViewDetails={(a) => setDetailAnime(a)}
+            onNavigate={setCurrentView}
           />
         )}
 
+        <Suspense fallback={<ViewFallback />}>
         {currentView === 'player' && activeAnime && (
           <ZokoPlayer
             anime={activeAnime}
@@ -227,6 +247,7 @@ export default function App() {
             onBrowseAnime={() => setCurrentView('home')}
           />
         )}
+        </Suspense>
       </main>
 
       {/* Dedicated Mobile Bottom Navigation Bar */}
@@ -237,27 +258,31 @@ export default function App() {
         downloadsCount={downloads.length}
       />
 
-      {/* Anime Detail Modal */}
-      {detailAnime && (
-        <AnimeDetailModal
-          anime={detailAnime}
-          onClose={() => setDetailAnime(null)}
-          onWatch={(a, ep) => {
-            setDetailAnime(null);
-            handleWatchAnime(a, ep || 1);
-          }}
-          onToggleWatchlist={handleToggleWatchlist}
-          isBookmarked={isBookmarked(detailAnime.id)}
-        />
-      )}
+      <Suspense fallback={null}>
+        {/* Anime Detail Modal */}
+        {detailAnime && (
+          <AnimeDetailModal
+            anime={detailAnime}
+            onClose={() => setDetailAnime(null)}
+            onWatch={(a, ep) => {
+              setDetailAnime(null);
+              handleWatchAnime(a, ep || 1);
+            }}
+            onToggleWatchlist={handleToggleWatchlist}
+            isBookmarked={isBookmarked(detailAnime.id)}
+          />
+        )}
 
-      {/* Search Modal */}
-      <SearchModal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-        onSelectAnime={(anime) => setDetailAnime(anime)}
-        onWatchAnime={(anime, ep) => handleWatchAnime(anime, ep || 1)}
-      />
+        {/* Search Modal */}
+        {isSearchOpen && (
+          <SearchModal
+            isOpen
+            onClose={() => setIsSearchOpen(false)}
+            onSelectAnime={(anime) => setDetailAnime(anime)}
+            onWatchAnime={(anime, ep) => handleWatchAnime(anime, ep || 1)}
+          />
+        )}
+      </Suspense>
 
       {/* Footer */}
       <footer className="app-footer">
@@ -272,17 +297,19 @@ export default function App() {
             </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-            <a
-              href="/assets/OtakuPlay.apk"
-              download="OtakuPlay.apk"
-              className="btn-secondary"
-              style={{ fontSize: '0.78rem', padding: '0.45rem 0.85rem' }}
-              title="Download Dedicated Android App"
-            >
-              <Smartphone size={14} color="var(--accent-color)" />
-              <span>Download APK</span>
-            </a>
+          <div className="footer-actions">
+            {!isNativeApp && (
+              <a
+                href="/assets/OtakuPlay.apk"
+                download="OtakuPlay.apk"
+                className="btn-secondary"
+                style={{ fontSize: '0.78rem', padding: '0.45rem 0.85rem' }}
+                title="Download Dedicated Android App"
+              >
+                <Smartphone size={14} color="var(--accent-color)" />
+                <span>Download APK</span>
+              </a>
+            )}
 
             <div className="footer-tags">
               <span>HLS Stream: Active</span>

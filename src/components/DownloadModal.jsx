@@ -86,9 +86,20 @@ export default function DownloadModal({
   };
 
   return (
-    <div className="search-modal-backdrop" onClick={onClose} style={{ zIndex: 250 }}>
+    <div
+      className="search-modal-backdrop"
+      onClick={(e) => {
+        // This modal can be rendered inside another modal's backdrop; don't let the click close the parent too
+        e.stopPropagation();
+        onClose();
+      }}
+      style={{ zIndex: 250 }}
+    >
       <div 
         className="search-modal-box download-modal-box" 
+        role="dialog"
+        aria-modal="true"
+        aria-label="Offline episode download"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}

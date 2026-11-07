@@ -26,17 +26,22 @@ export default function SearchModal({
   // Debounced search
   useEffect(() => {
     if (!isOpen) return;
+    let cancelled = false;
     const timer = setTimeout(() => {
       setLoading(true);
       searchAnime(searchTerm, 1, 25, selectedGenre).then(data => {
+        if (cancelled) return;
         setResults(data);
         setLoading(false);
       }).catch(() => {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       });
     }, 250);
 
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [searchTerm, selectedGenre, isOpen]);
 
   // Keyboard shortcut for Escape
@@ -55,7 +60,10 @@ export default function SearchModal({
   return (
     <div className="search-modal-backdrop" onClick={onClose}>
       <div 
-        className="search-modal-box" 
+        className="search-modal-box search-sheet" 
+        role="dialog"
+        aria-modal="true"
+        aria-label="Search anime"
         onClick={e => e.stopPropagation()}
       >
         {/* Search Input Bar */}
@@ -68,9 +76,18 @@ export default function SearchModal({
             ref={inputRef}
             type="text"
             className="search-main-input"
-            placeholder="Search anime title, Japanese name..."
+            placeholder="Search anime title..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
+            onKeyDown={e => {
+              // Dismiss the on-screen keyboard so results are fully visible
+              if (e.key === 'Enter') e.currentTarget.blur();
+            }}
+            enterKeyHint="search"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
             aria-label="Search anime"
           />
 
@@ -79,7 +96,6 @@ export default function SearchModal({
               type="button"
               className="icon-btn" 
               onClick={() => setSearchTerm('')} 
-              style={{ width: '32px', height: '32px' }}
               title="Clear search"
               aria-label="Clear search"
             >
@@ -107,8 +123,8 @@ export default function SearchModal({
                 key={genre}
                 type="button"
                 onClick={() => setSelectedGenre(genre)}
-                className={`genre-pill ${isActive ? 'active' : ''}`}
-                style={{ padding: '0.35rem 0.85rem', fontSize: '0.75rem', flexShrink: 0 }}
+                className={`genre-pill genre-pill-sm ${isActive ? 'active' : ''}`}
+                aria-pressed={isActive}
               >
                 {genre === 'All' ? 'All Genres' : genre}
               </button>
@@ -117,16 +133,17 @@ export default function SearchModal({
         </div>
 
         {/* Results Header Status */}
-        <div className="search-status-bar">
+        <div className="search-status-bar" role="status" aria-live="polite">
           <span>
             {loading ? 'Searching anime...' : `${results.length} results found`}
           </span>
-          <span style={{ color: 'var(--accent-color)' }}>Franchises Combined</span>
+          <span className="search-status-note">Franchises Combined</span>
         </div>
 
         {/* Results List */}
-        <div className="search-results-list">
-          {loading && (
+        <div className={`search-results-list ${loading && results.length > 0 ? 'is-refreshing' : ''}`}>
+          {/* Spinner only when there is nothing to show yet; otherwise keep previous results (dimmed) to avoid flicker */}
+          {loading && results.length === 0 && (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '3.5rem' }}>
               <div className="player-spinner" style={{ width: '36px', height: '36px' }} />
             </div>
@@ -135,7 +152,7 @@ export default function SearchModal({
           {!loading && results.length === 0 && (
             <div style={{ textAlign: 'center', padding: '3.5rem 1.5rem', color: 'var(--text-muted)' }}>
               <Film size={40} color="var(--text-dim)" style={{ margin: '0 auto 0.75rem' }} />
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.1rem', color: '#f8fafc', marginBottom: '0.35rem' }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-main)', marginBottom: '0.35rem' }}>
                 No anime found
               </div>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', maxWidth: '400px', margin: '0 auto' }}>
@@ -144,7 +161,7 @@ export default function SearchModal({
             </div>
           )}
 
-          {!loading && results.map(anime => {
+          {results.map(anime => {
             const title = anime.title?.english || anime.title?.romaji;
             const poster = anime.coverImage?.large || anime.coverImage?.extraLarge;
             const score = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : null;
@@ -165,9 +182,10 @@ export default function SearchModal({
                 <div className="search-card-poster-wrap">
                   <img 
                     src={poster} 
-                    alt={title} 
+                    alt="" 
                     className="search-card-poster"
                     loading="lazy" 
+                    decoding="async"
                   />
                   {seasonCount > 1 && (
                     <span className="search-card-season-pill">
