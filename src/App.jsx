@@ -450,6 +450,12 @@ export default function App() {
         setCurrentView={setCurrentView}
         watchlistCount={watchlist.length}
         downloadsCount={downloads.length}
+        partyInfo={{
+          active: partyState.active,
+          roomCode: partyState.roomCode,
+          membersCount: partyState.members.length
+        }}
+        onOpenPartyModal={() => setIsWatchPartyModalOpen(true)}
       />
 
       <Suspense fallback={null}>

@@ -936,6 +936,17 @@ export default function ZokoPlayer({
               <span className={`pill-dot ${autoNext ? 'on' : ''}`} />
             </button>
 
+            {/* Watch Party Pill in Player Controls Toolbar */}
+            <button
+              className={`pill-toggle-btn ${partyState?.active ? 'active' : ''}`}
+              onClick={partyState?.active ? () => setIsPartyDrawerOpen(!isPartyDrawerOpen) : onOpenWatchPartyModal}
+              title={partyState?.active ? `Watch Party Active (${partyState.members.length} viewing)` : 'Start or Join Watch Party'}
+            >
+              <Users size={13} />
+              <span>{partyState?.active ? (partyState.isHost ? 'Party Host' : 'Party') : 'Party'}</span>
+              {partyState?.active && <span className="pill-dot on" />}
+            </button>
+
             {/* Download shortcut (the header already has one; hidden on small screens) */}
             <button
               className="icon-btn toolbar-download-btn"

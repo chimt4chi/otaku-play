@@ -160,6 +160,18 @@ export default function Navbar({
             </button>
           )}
 
+          {/* Watch Party Action Pill (Visible on both Mobile & Desktop) */}
+          <button 
+            className={`nav-party-btn ${partyInfo?.active ? 'active' : ''}`}
+            onClick={onOpenPartyModal}
+            title={partyInfo?.active ? `Watch Party Active (${partyInfo.roomCode})` : 'Anime Watch Party'}
+            aria-label="Anime Watch Party"
+          >
+            <Users size={15} />
+            <span className="party-btn-text">{partyInfo?.active ? partyInfo.roomCode : 'Party'}</span>
+            {partyInfo?.active && <span className="party-pill-dot" />}
+          </button>
+
           {/* Quick Search Trigger */}
           <button 
             className="search-trigger-btn"
