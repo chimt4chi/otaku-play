@@ -25,12 +25,15 @@ import {
   Search,
   Sliders,
   Tv,
-  Download
+  Download,
+  Users
 } from 'lucide-react';
 import { getAnimeDetails, fetchFullFranchiseSeasons, resolveEpisodeCount, getAnimeSagasOrSeasons } from '../services/api';
 import { savePlayerConfig, getPlayerConfig } from '../services/storage';
+import { watchPartyService } from '../services/watchPartyService';
 import AnimeCard from './AnimeCard';
 import DownloadModal from './DownloadModal';
+import WatchPartyDrawer from './WatchPartyDrawer';
 
 // Helper for vendor-prefixed fullscreen checks
 const isFullscreenElement = (element) => {
@@ -70,7 +73,12 @@ export default function ZokoPlayer({
   onToggleWatchlist,
   isBookmarked = false,
   onWatchAnime,
-  onAnimeChange
+  onAnimeChange,
+  partyState = null,
+  isPartyDrawerOpen = false,
+  setIsPartyDrawerOpen = () => {},
+  onOpenWatchPartyModal = () => {},
+  onLeaveParty = () => {}
 }) {
   const playerSavedConfig = getPlayerConfig();
 
@@ -95,11 +103,13 @@ export default function ZokoPlayer({
   const [detailsData, setDetailsData] = useState(anime);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDownloadOpen, setIsDownloadOpen] = useState(false);
+  const [floatingReactions, setFloatingReactions] = useState([]);
 
   const containerRef = useRef(null);
   const iframeRef = useRef(null);
   const countdownTimerRef = useRef(null);
   const toastTimeoutRef = useRef(null);
+  const lastHostBroadcastRef = useRef(0);
 
   // Time & Progress throttling refs (Fix: LocalStorage flooding and time loss)
   const currentTimeRef = useRef(initialTime);
@@ -217,6 +227,12 @@ export default function ZokoPlayer({
     }
     lastProgressSaveRef.current = now;
 
+    // Host Watch Party periodic playback sync
+    if (partyState?.active && partyState.isHost && Math.abs(pos - (lastHostBroadcastRef.current || 0)) > 2.5) {
+      lastHostBroadcastRef.current = pos;
+      watchPartyService.broadcastPlaybackState(currentAnime, currentEpisode, pos, true);
+    }
+
     onProgressUpdate?.({
       id: currentAnime.id,
       idMal: currentAnime.idMal,
@@ -227,7 +243,69 @@ export default function ZokoPlayer({
       currentTime: Math.floor(pos),
       duration: Math.floor(dur)
     });
-  }, [currentAnime, currentEpisode, onProgressUpdate]);
+  }, [currentAnime, currentEpisode, partyState?.active, partyState?.isHost, onProgressUpdate]);
+
+  // Floating reactions listener
+  useEffect(() => {
+    const unsubReaction = watchPartyService.on('reaction', (r) => {
+      const rxItem = {
+        id: r.id || `rx-${Date.now()}-${Math.random()}`,
+        emoji: r.emoji,
+        left: 15 + Math.random() * 70
+      };
+      setFloatingReactions(prev => [...prev.slice(-10), rxItem]);
+      setTimeout(() => {
+        setFloatingReactions(prev => prev.filter(item => item.id !== rxItem.id));
+      }, 2800);
+    });
+
+    return () => unsubReaction();
+  }, []);
+
+  // Guest playback synchronization from Host
+  useEffect(() => {
+    if (!partyState?.active || partyState.isHost) return;
+
+    const unsubSync = watchPartyService.on('sync', (sync) => {
+      if (!sync) return;
+
+      // Sync anime if host switched show
+      if (sync.animeId && sync.animeId !== currentAnime.id) {
+        const found = allSeasons.find(s => s.id === sync.animeId);
+        if (found) {
+          setCurrentAnime(found);
+          setCurrentEpisode(sync.episode || 1);
+          currentTimeRef.current = sync.currentTime || 0;
+          onAnimeChange?.(found, sync.episode || 1);
+        } else {
+          getAnimeDetails(sync.animeId).then(details => {
+            if (details) {
+              setCurrentAnime(details);
+              setCurrentEpisode(sync.episode || 1);
+              currentTimeRef.current = sync.currentTime || 0;
+              onAnimeChange?.(details, sync.episode || 1);
+            }
+          }).catch(() => {});
+        }
+      }
+
+      // Sync episode if host changed episode
+      if (sync.episode && sync.episode !== currentEpisode) {
+        currentTimeRef.current = sync.currentTime || 0;
+        setCurrentEpisode(sync.episode);
+        setPlayerLoading(true);
+        showToast(`Synced with Host: Episode ${sync.episode}`);
+      } else if (sync.currentTime !== undefined) {
+        const drift = Math.abs((currentTimeRef.current || 0) - sync.currentTime);
+        if (drift > 3) {
+          currentTimeRef.current = sync.currentTime;
+          sendPlayerMessage({ type: 'seek', time: sync.currentTime });
+        }
+      }
+    });
+
+    return () => unsubSync();
+  }, [partyState?.active, partyState?.isHost, currentAnime.id, currentEpisode, allSeasons, onAnimeChange, sendPlayerMessage, showToast]);
 
   // Determine if a next season exists
   const getNextSeason = useCallback(() => {
@@ -396,11 +474,20 @@ export default function ZokoPlayer({
     };
   }, [currentAnime, currentEpisode, totalEpisodes, autoNext, reportProgress, getNextSeason, triggerAutoNextCountdown, sendPlayerMessage, showToast]);
 
+  const broadcastHostEpisode = (targetAnime, ep) => {
+    if (partyState?.active && partyState.isHost) {
+      lastHostBroadcastRef.current = 0;
+      watchPartyService.broadcastPlaybackState(targetAnime || currentAnime, ep, 0, true);
+    }
+  };
+
   const handleNextEpisode = () => {
     if (currentEpisode < totalEpisodes) {
+      const nextEp = currentEpisode + 1;
       currentTimeRef.current = 0;
-      setCurrentEpisode(prev => prev + 1);
+      setCurrentEpisode(nextEp);
       setPlayerLoading(true);
+      broadcastHostEpisode(currentAnime, nextEp);
     } else {
       const nextSeason = getNextSeason();
       if (nextSeason) {
@@ -411,9 +498,11 @@ export default function ZokoPlayer({
 
   const handlePrevEpisode = () => {
     if (currentEpisode > 1) {
+      const prevEp = currentEpisode - 1;
       currentTimeRef.current = 0;
-      setCurrentEpisode(prev => prev - 1);
+      setCurrentEpisode(prevEp);
       setPlayerLoading(true);
+      broadcastHostEpisode(currentAnime, prevEp);
     }
   };
 
@@ -427,6 +516,7 @@ export default function ZokoPlayer({
       setSource(target.idMal ? 'mal' : 'ani');
       onAnimeChange?.(target, 1);
       showToast(`Switched to ${target.seasonName || 'Season'}`);
+      broadcastHostEpisode(target, 1);
     }
   };
 
@@ -439,6 +529,7 @@ export default function ZokoPlayer({
         setCurrentEpisode(targetSaga.startEp);
         setPlayerLoading(true);
         showToast(`Jumped to ${targetSaga.name} (Episode ${targetSaga.startEp})`);
+        broadcastHostEpisode(currentAnime, targetSaga.startEp);
       }
     } else {
       handleSeasonChange(Number(value));
@@ -493,6 +584,7 @@ export default function ZokoPlayer({
       setPlayerLoading(true);
       setQuickJumpVal('');
       showToast(`Jumping to Episode ${ep}`);
+      broadcastHostEpisode(currentAnime, ep);
     } else {
       showToast(`Please enter an episode between 1 and ${totalEpisodes}`);
     }
@@ -600,6 +692,17 @@ export default function ZokoPlayer({
             </button>
 
             <button
+              className={`player-action-btn ${partyState?.active ? 'active watch-party-pill' : ''}`}
+              onClick={partyState?.active ? () => setIsPartyDrawerOpen(!isPartyDrawerOpen) : onOpenWatchPartyModal}
+              title={partyState?.active ? `Watch Party (${partyState.members.length} viewing)` : 'Start or Join Watch Party'}
+              aria-label="Watch Party"
+            >
+              <Users size={15} />
+              <span>{partyState?.active ? `Party (${partyState.members.length})` : 'Party'}</span>
+              {partyState?.active && <span className="party-pill-dot" />}
+            </button>
+
+            <button
               className={`player-action-btn player-theater-btn ${theaterMode ? 'active' : ''}`}
               onClick={() => setTheaterMode(!theaterMode)}
               title={theaterMode ? 'Exit Cinema Theater View' : 'Cinema Theater View'}
@@ -613,6 +716,21 @@ export default function ZokoPlayer({
 
         {/* Video Player Frame Container */}
         <div className="video-frame-container" ref={containerRef} id="player-wrap">
+          {/* Floating Emoji Reactions Overlay */}
+          {floatingReactions.length > 0 && (
+            <div className="party-floating-reactions-overlay">
+              {floatingReactions.map(r => (
+                <div
+                  key={r.id}
+                  className="party-floating-emoji"
+                  style={{ left: `${r.left}%` }}
+                >
+                  {r.emoji}
+                </div>
+              ))}
+            </div>
+          )}
+
           {playerLoading && (
             <div className="player-loading-overlay">
               <div className="player-spinner" />
@@ -1323,6 +1441,23 @@ export default function ZokoPlayer({
         server={server}
         onDownloadSaved={() => showToast(`Saved Episode ${currentEpisode} to Offline Downloads!`)}
       />
+
+      {/* Watch Party Live Drawer */}
+      {partyState?.active && isPartyDrawerOpen && (
+        <WatchPartyDrawer
+          isOpen={isPartyDrawerOpen}
+          onClose={() => setIsPartyDrawerOpen(false)}
+          roomCode={partyState.roomCode}
+          isHost={partyState.isHost}
+          members={partyState.members}
+          messages={partyState.messages}
+          onSendMessage={(text) => watchPartyService.sendChatMessage(text)}
+          onSendReaction={(emoji) => watchPartyService.sendReaction(emoji)}
+          onLeaveParty={onLeaveParty}
+          onRequestSync={() => watchPartyService.requestSync()}
+          hostName={partyState.members.find(m => m.isHost)?.username || 'Host'}
+        />
+      )}
     </div>
   );
 }

@@ -12,7 +12,8 @@ import {
   Tv,
   Download,
   Smartphone,
-  Sparkles
+  Sparkles,
+  Users
 } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 
@@ -36,7 +37,9 @@ export default function Navbar({
   watchlistCount = 0,
   downloadsCount = 0,
   updateInfo = null,
-  onOpenUpdateModal = () => {}
+  onOpenUpdateModal = () => {},
+  partyInfo = null,
+  onOpenPartyModal = () => {}
 }) {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const colorPickerRef = useRef(null);
@@ -127,6 +130,18 @@ export default function Navbar({
               <span className="badge badge-brand" style={{ padding: '0.1rem 0.45rem', fontSize: '0.65rem' }}>
                 {watchlistCount}
               </span>
+            )}
+          </button>
+
+          <button 
+            className={`nav-item ${partyInfo?.active ? 'active' : ''}`}
+            onClick={onOpenPartyModal}
+            title={partyInfo?.active ? `Watch Party Active (${partyInfo.roomCode})` : 'Anime Watch Party'}
+          >
+            <Users size={16} />
+            <span>Party</span>
+            {partyInfo?.active && (
+              <span className="party-pill-dot" style={{ marginLeft: '4px' }} />
             )}
           </button>
         </div>

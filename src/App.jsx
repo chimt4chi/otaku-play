@@ -20,6 +20,8 @@ import { App as CapApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { Smartphone } from 'lucide-react';
 import { checkForAppUpdate } from './services/otaService';
+import { watchPartyService } from './services/watchPartyService';
+import { getAnimeDetails } from './services/api';
 
 // Everything except the home screen is split out of the initial bundle
 const GenresView = lazy(() => import('./views/GenresView'));
@@ -31,6 +33,7 @@ const ZokoPlayer = lazy(() => import('./components/ZokoPlayer'));
 const AnimeDetailModal = lazy(() => import('./components/AnimeDetailModal'));
 const SearchModal = lazy(() => import('./components/SearchModal'));
 const OtaUpdateModal = lazy(() => import('./components/OtaUpdateModal'));
+const WatchPartyModal = lazy(() => import('./components/WatchPartyModal'));
 
 const isNativeApp = Capacitor.isNativePlatform();
 
@@ -61,6 +64,93 @@ export default function App() {
   const [updateInfo, setUpdateInfo] = useState(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [checkingUpdate, setCheckingUpdate] = useState(false);
+
+  // Watch Party States
+  const [partyState, setPartyState] = useState({
+    active: false,
+    roomCode: null,
+    isHost: false,
+    members: [],
+    messages: []
+  });
+  const [isPartyDrawerOpen, setIsPartyDrawerOpen] = useState(false);
+  const [isWatchPartyModalOpen, setIsWatchPartyModalOpen] = useState(false);
+  const [initialPartyCode, setInitialPartyCode] = useState('');
+
+  // Watch Party URL param listener on startup: ?party=OTK-XXXX
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const party = params.get('party');
+      if (party) {
+        setInitialPartyCode(party);
+        setIsWatchPartyModalOpen(true);
+      }
+    } catch (e) {
+      // Ignored
+    }
+  }, []);
+
+  // Listen for Watch Party service events
+  useEffect(() => {
+    const unsubStatus = watchPartyService.on('status', (info) => {
+      if (info.state === 'connected') {
+        setPartyState(prev => ({
+          ...prev,
+          active: true,
+          roomCode: info.roomCode,
+          isHost: info.isHost
+        }));
+        setIsPartyDrawerOpen(true);
+      } else if (info.state === 'idle' || info.state === 'disconnected') {
+        setPartyState({
+          active: false,
+          roomCode: null,
+          isHost: false,
+          members: [],
+          messages: []
+        });
+        setIsPartyDrawerOpen(false);
+      }
+    });
+
+    const unsubMembers = watchPartyService.on('members', (members) => {
+      setPartyState(prev => ({ ...prev, members }));
+    });
+
+    const unsubChat = watchPartyService.on('chat', (message) => {
+      setPartyState(prev => ({
+        ...prev,
+        messages: [...prev.messages, message]
+      }));
+    });
+
+    const unsubSync = watchPartyService.on('sync', async (syncData) => {
+      if (!syncData?.animeId) return;
+
+      // When guest is in party and sync indicates show or episode change
+      if (!activeAnime || activeAnime.id !== syncData.animeId) {
+        try {
+          const fetched = await getAnimeDetails(syncData.animeId);
+          if (fetched) {
+            setActiveAnime(fetched);
+            setActiveEpisode(syncData.episode || 1);
+            setActiveTime(syncData.currentTime || 0);
+            setCurrentView('player');
+          }
+        } catch (err) {
+          console.warn('Failed to sync party anime:', err);
+        }
+      }
+    });
+
+    return () => {
+      unsubStatus();
+      unsubMembers();
+      unsubChat();
+      unsubSync();
+    };
+  }, [activeAnime]);
 
   // Background OTA update check on startup
   useEffect(() => {
@@ -207,6 +297,45 @@ export default function App() {
     setDownloads(updated);
   }, []);
 
+  const handleCreateParty = useCallback(async ({ username, avatarColor, anime, episode, currentTime }) => {
+    const targetAnime = anime || activeAnime;
+    if (!targetAnime) {
+      throw new Error('Please select an anime before hosting a Watch Party.');
+    }
+    await watchPartyService.createRoom(
+      username,
+      targetAnime,
+      episode || activeEpisode,
+      currentTime || activeTime,
+      avatarColor
+    );
+    if (currentView !== 'player') {
+      setActiveAnime(targetAnime);
+      setActiveEpisode(episode || 1);
+      setActiveTime(currentTime || 0);
+      setCurrentView('player');
+    }
+  }, [activeAnime, activeEpisode, activeTime, currentView]);
+
+  const handleJoinParty = useCallback(async ({ roomCode, username, avatarColor }) => {
+    await watchPartyService.joinRoom(roomCode, username, avatarColor);
+    setTimeout(() => {
+      watchPartyService.requestSync();
+    }, 800);
+  }, []);
+
+  const handleLeaveParty = useCallback(() => {
+    watchPartyService.leaveRoom();
+    setPartyState({
+      active: false,
+      roomCode: null,
+      isHost: false,
+      members: [],
+      messages: []
+    });
+    setIsPartyDrawerOpen(false);
+  }, []);
+
   const isBookmarked = (id) => watchlist.some(item => item.id === id);
 
   return (
@@ -224,6 +353,12 @@ export default function App() {
         downloadsCount={downloads.length}
         updateInfo={updateInfo}
         onOpenUpdateModal={() => setIsUpdateModalOpen(true)}
+        partyInfo={{
+          active: partyState.active,
+          roomCode: partyState.roomCode,
+          membersCount: partyState.members.length
+        }}
+        onOpenPartyModal={() => setIsWatchPartyModalOpen(true)}
       />
 
       {/* Main Content Router */}
@@ -256,6 +391,11 @@ export default function App() {
               setActiveAnime(newAnime);
               setActiveEpisode(ep || 1);
             }}
+            partyState={partyState}
+            isPartyDrawerOpen={isPartyDrawerOpen}
+            setIsPartyDrawerOpen={setIsPartyDrawerOpen}
+            onOpenWatchPartyModal={() => setIsWatchPartyModalOpen(true)}
+            onLeaveParty={handleLeaveParty}
           />
         )}
 
@@ -343,6 +483,20 @@ export default function App() {
             updateInfo={updateInfo}
             onClose={() => setIsUpdateModalOpen(false)}
             onUpdateComplete={() => setIsUpdateModalOpen(false)}
+          />
+        )}
+
+        {/* Watch Party Modal */}
+        {isWatchPartyModalOpen && (
+          <WatchPartyModal
+            isOpen={isWatchPartyModalOpen}
+            onClose={() => setIsWatchPartyModalOpen(false)}
+            currentAnime={activeAnime}
+            currentEpisode={activeEpisode}
+            currentTime={activeTime}
+            onCreateParty={handleCreateParty}
+            onJoinParty={handleJoinParty}
+            initialRoomCode={initialPartyCode}
           />
         )}
       </Suspense>
