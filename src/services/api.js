@@ -64,7 +64,167 @@ const MEDIA_FIELDS = `
   popularity
   favourites
   seasonYear
+  nextAiringEpisode {
+    episode
+    airingAt
+  }
 `;
+
+/**
+ * Resolves the realistic total/latest episode count for an anime.
+ * Handles AniList's null episode count for releasing or long-running anime.
+ */
+export function resolveEpisodeCount(anime) {
+  if (!anime) return 24;
+  if (typeof anime.episodes === 'number' && anime.episodes > 0) {
+    return anime.episodes;
+  }
+  if (anime.nextAiringEpisode?.episode && anime.nextAiringEpisode.episode > 1) {
+    return anime.nextAiringEpisode.episode - 1;
+  }
+  const title = (anime.title?.english || anime.title?.romaji || '').toLowerCase();
+  if (anime.id === 21 || title.includes('one piece')) {
+    return 1180;
+  }
+  if (anime.id === 235 || title.includes('detective conan') || title.includes('case closed')) {
+    return 1140;
+  }
+  if (title.includes('pokemon') || title.includes('pocket monsters')) {
+    return 1250;
+  }
+  if (title.includes('crayon shin-chan')) {
+    return 1200;
+  }
+  if (title.includes('chibi maruko-chan')) {
+    return 1500;
+  }
+  if (title.includes('sazae-san')) {
+    return 2600;
+  }
+  if (anime.status === 'RELEASING') {
+    return Math.max(anime.episodes || 0, 100);
+  }
+  return anime.episodes || 24;
+}
+
+export const KNOWN_FRANCHISE_SAGAS = {
+  // One Piece (All Canon Story Sagas)
+  21: [
+    { sagaNumber: 1, name: "East Blue Saga", startEp: 1, endEp: 61 },
+    { sagaNumber: 2, name: "Alabasta Saga", startEp: 62, endEp: 135 },
+    { sagaNumber: 3, name: "Sky Island Saga", startEp: 136, endEp: 206 },
+    { sagaNumber: 4, name: "Water 7 / Enies Lobby Saga", startEp: 207, endEp: 325 },
+    { sagaNumber: 5, name: "Thriller Bark Saga", startEp: 326, endEp: 384 },
+    { sagaNumber: 6, name: "Summit War / Marineford Saga", startEp: 385, endEp: 516 },
+    { sagaNumber: 7, name: "Fish-Man Island Saga", startEp: 517, endEp: 574 },
+    { sagaNumber: 8, name: "Dressrosa Saga", startEp: 575, endEp: 746 },
+    { sagaNumber: 9, name: "Whole Cake Island Saga", startEp: 747, endEp: 889 },
+    { sagaNumber: 10, name: "Wano Country Saga", startEp: 890, endEp: 1085 },
+    { sagaNumber: 11, name: "Egghead Arc / Final Saga", startEp: 1086, endEp: 9999 }
+  ],
+  // Naruto (Original TV)
+  20: [
+    { sagaNumber: 1, name: "Prologue & Land of Waves", startEp: 1, endEp: 19 },
+    { sagaNumber: 2, name: "Chunin Exams Arc", startEp: 20, endEp: 67 },
+    { sagaNumber: 3, name: "Konoha Crush Arc", startEp: 68, endEp: 80 },
+    { sagaNumber: 4, name: "Search for Tsunade Arc", startEp: 81, endEp: 100 },
+    { sagaNumber: 5, name: "Sasuke Recovery Mission", startEp: 101, endEp: 135 },
+    { sagaNumber: 6, name: "Land of Rice Fields & Special Missions", startEp: 136, endEp: 174 },
+    { sagaNumber: 7, name: "Sunagakure Support & Hidden Leaf Arcs", startEp: 175, endEp: 220 }
+  ],
+  // Naruto: Shippuden
+  1735: [
+    { sagaNumber: 1, name: "Kazekage Rescue Mission", startEp: 1, endEp: 32 },
+    { sagaNumber: 2, name: "Tenchi Bridge & Akatsuki Suppression", startEp: 33, endEp: 88 },
+    { sagaNumber: 3, name: "Three-Tails & Itachi Pursuit", startEp: 89, endEp: 143 },
+    { sagaNumber: 4, name: "Pain's Assault & Five Kage Summit", startEp: 144, endEp: 219 },
+    { sagaNumber: 5, name: "Fourth Shinobi World War: Countdown", startEp: 220, endEp: 295 },
+    { sagaNumber: 6, name: "Fourth Shinobi World War: Climax", startEp: 296, endEp: 375 },
+    { sagaNumber: 7, name: "Birth of the Ten-Tails' Jinchuriki", startEp: 376, endEp: 426 },
+    { sagaNumber: 8, name: "Infinite Tsukuyomi & Kaguya Strikes", startEp: 427, endEp: 479 },
+    { sagaNumber: 9, name: "Final Battle & Post-War Epilogue", startEp: 480, endEp: 500 }
+  ],
+  // Bleach (Original TV)
+  269: [
+    { sagaNumber: 1, name: "Substitute Shinigami Arc", startEp: 1, endEp: 20 },
+    { sagaNumber: 2, name: "Soul Society: Sneak Entry Arc", startEp: 21, endEp: 41 },
+    { sagaNumber: 3, name: "Soul Society: The Rescue Arc", startEp: 42, endEp: 63 },
+    { sagaNumber: 4, name: "The Bount Arc", startEp: 64, endEp: 109 },
+    { sagaNumber: 5, name: "Arrancar: The Arrival & Hueco Mundo", startEp: 110, endEp: 167 },
+    { sagaNumber: 6, name: "Captain Shusuke Amagai Arc", startEp: 168, endEp: 189 },
+    { sagaNumber: 7, name: "Arrancar vs. Shinigami & The Past", startEp: 190, endEp: 212 },
+    { sagaNumber: 8, name: "Decisive Battle of Karakura", startEp: 213, endEp: 265 },
+    { sagaNumber: 9, name: "Zanpakuto: The Alternate Tale", startEp: 266, endEp: 316 },
+    { sagaNumber: 10, name: "Gotei 13 Invading Army Arc", startEp: 317, endEp: 342 },
+    { sagaNumber: 11, name: "The Lost Substitute Shinigami Arc", startEp: 343, endEp: 366 }
+  ],
+  // Hunter x Hunter (2011)
+  11061: [
+    { sagaNumber: 1, name: "Hunter Exam Arc", startEp: 1, endEp: 26 },
+    { sagaNumber: 2, name: "Heavens Arena Arc", startEp: 27, endEp: 36 },
+    { sagaNumber: 3, name: "Yorknew City Arc", startEp: 37, endEp: 58 },
+    { sagaNumber: 4, name: "Greed Island Arc", startEp: 59, endEp: 75 },
+    { sagaNumber: 5, name: "Chimera Ant Arc", startEp: 76, endEp: 136 },
+    { sagaNumber: 6, name: "13th Hunter Chairman Election Arc", startEp: 137, endEp: 148 }
+  ],
+  // Dragon Ball Z
+  813: [
+    { sagaNumber: 1, name: "Saiyan Saga", startEp: 1, endEp: 35 },
+    { sagaNumber: 2, name: "Namek & Captain Ginyu Saga", startEp: 36, endEp: 74 },
+    { sagaNumber: 3, name: "Frieza Saga", startEp: 75, endEp: 107 },
+    { sagaNumber: 4, name: "Garlic Jr. Saga", startEp: 108, endEp: 117 },
+    { sagaNumber: 5, name: "Androids & Cell Saga", startEp: 118, endEp: 194 },
+    { sagaNumber: 6, name: "World Tournament & Majin Buu Saga", startEp: 195, endEp: 291 }
+  ]
+};
+
+export function getAnimeSagasOrSeasons(anime) {
+  if (!anime) return [];
+  const total = resolveEpisodeCount(anime);
+  const known = KNOWN_FRANCHISE_SAGAS[anime.id] ||
+    (anime.title && Object.entries(KNOWN_FRANCHISE_SAGAS).find(([kId]) => {
+      const title = (anime.title?.english || anime.title?.romaji || '').toLowerCase();
+      if (kId === '21' && title.includes('one piece')) return true;
+      if (kId === '20' && (title === 'naruto' || title.startsWith('naruto '))) return true;
+      if (kId === '1735' && (title.includes('shippuuden') || title.includes('shippuden'))) return true;
+      if (kId === '269' && (title === 'bleach' || title.startsWith('bleach '))) return true;
+      if (kId === '11061' && title.includes('hunter x hunter')) return true;
+      if (kId === '813' && title.includes('dragon ball z')) return true;
+      return false;
+    })?.[1]);
+
+  if (known) {
+    return known.map(s => {
+      const end = Math.min(total, s.endEp);
+      return {
+        ...s,
+        endEp: end,
+        episodeCount: Math.max(1, end - s.startEp + 1)
+      };
+    }).filter(s => s.startEp <= total);
+  }
+
+  // Generic fallback for long-running series without explicit saga configuration (> 75 episodes)
+  if (total > 75) {
+    const CHUNK_SIZE = 50;
+    const count = Math.ceil(total / CHUNK_SIZE);
+    const sagas = [];
+    for (let i = 0; i < count; i++) {
+      const start = i * CHUNK_SIZE + 1;
+      const end = Math.min(total, (i + 1) * CHUNK_SIZE);
+      sagas.push({
+        sagaNumber: i + 1,
+        name: `Part ${i + 1}`,
+        startEp: start,
+        endEp: end,
+        episodeCount: end - start + 1
+      });
+    }
+    return sagas;
+  }
+
+  return [];
+}
 
 // Clean franchise normalization and grouping
 export function getFranchiseKey(title) {
@@ -197,10 +357,11 @@ export function groupMediaIntoFranchises(mediaList) {
     });
 
     const primaryItem = sortedItems[0];
-    const totalEpisodes = sortedItems.reduce((acc, curr) => acc + (curr.episodes || 0), 0);
+    const totalEpisodes = sortedItems.reduce((acc, curr) => acc + resolveEpisodeCount(curr), 0);
 
     const seasons = sortedItems.map((s, idx) => ({
       ...s,
+      episodes: resolveEpisodeCount(s),
       seasonNumber: idx + 1,
       seasonName: getDetailedSeasonLabel(s, idx + 1),
     }));
@@ -213,7 +374,7 @@ export function groupMediaIntoFranchises(mediaList) {
       },
       seasonCount: seasons.length,
       seasons: seasons,
-      totalEpisodes: totalEpisodes > 0 ? totalEpisodes : primaryItem.episodes,
+      totalEpisodes: totalEpisodes > 0 ? totalEpisodes : resolveEpisodeCount(primaryItem),
     };
   });
 }
@@ -243,6 +404,9 @@ export async function fetchFullFranchiseSeasons(anime) {
 
     const lowerKey = franchiseKey.toLowerCase();
     const matched = items.filter(item => {
+      // Exclude standalone music videos or PV promos
+      if (item.format === 'MUSIC') return false;
+
       const itemTitle = (item.title?.english || item.title?.romaji || '').toLowerCase();
       const itemKey = getFranchiseKey(itemTitle).toLowerCase();
       return (
@@ -286,6 +450,7 @@ export async function fetchFullFranchiseSeasons(anime) {
 
     const mainSeasons = mainList.map((s, idx) => ({
       ...s,
+      episodes: resolveEpisodeCount(s),
       seasonNumber: idx + 1,
       seasonName: getDetailedSeasonLabel(s, idx + 1),
       isMain: true
@@ -293,6 +458,7 @@ export async function fetchFullFranchiseSeasons(anime) {
 
     const sideContent = sideList.map(s => ({
       ...s,
+      episodes: resolveEpisodeCount(s),
       seasonName: getDetailedSeasonLabel(s, 0),
       isMain: false
     }));
@@ -304,9 +470,10 @@ export async function fetchFullFranchiseSeasons(anime) {
     };
   } catch (err) {
     console.warn('Failed to fetch full franchise seasons:', err);
+    const fallbackItem = { ...anime, episodes: resolveEpisodeCount(anime) };
     return {
-      allSeasons: [anime],
-      mainSeasons: [anime],
+      allSeasons: [fallbackItem],
+      mainSeasons: [fallbackItem],
       sideContent: []
     };
   }
@@ -495,12 +662,17 @@ export async function getAnimeDetails(id) {
   `;
   try {
     const data = await fetchGraphQL(query, { id: parseInt(id, 10) });
-    return data.Media;
+    if (data?.Media) {
+      data.Media.episodes = resolveEpisodeCount(data.Media);
+      return data.Media;
+    }
+    return data?.Media;
   } catch (err) {
     const found = [...FALLBACK_TRENDING, ...FALLBACK_POPULAR].find(a => a.id === parseInt(id, 10));
     if (found) {
       return {
         ...found,
+        episodes: resolveEpisodeCount(found),
         studios: { nodes: [{ name: 'Studio MAPPA' }] },
         characters: {
           edges: [

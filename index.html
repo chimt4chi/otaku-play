@@ -2,7 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>" />
+    <link rel="icon" type="image/png" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="dark light" />
     <title>OTAKU PLAY // Next-Gen Anime Streaming</title>
@@ -12,6 +13,19 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="OtakuPlay" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <script>
+      // Global anti-popup & anti-ad-redirect protection
+      (function() {
+        const _open = window.open;
+        window.open = function(url, target, features) {
+          if (typeof url === 'string' && url.includes('github.com')) {
+            return _open.call(window, url, target, features);
+          }
+          console.warn('[AdBlock] Blocked popup window.open attempt:', url);
+          return null;
+        };
+      })();
+    </script>
     <link rel="manifest" href="/manifest.json" />
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

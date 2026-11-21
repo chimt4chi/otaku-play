@@ -11,7 +11,8 @@ import {
   Compass, 
   Tv,
   Download,
-  Smartphone
+  Smartphone,
+  Sparkles
 } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 
@@ -33,7 +34,9 @@ export default function Navbar({
   accentColor,
   setAccentColor,
   watchlistCount = 0,
-  downloadsCount = 0
+  downloadsCount = 0,
+  updateInfo = null,
+  onOpenUpdateModal = () => {}
 }) {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const colorPickerRef = useRef(null);
@@ -130,6 +133,18 @@ export default function Navbar({
 
         {/* Right Actions */}
         <div className="nav-actions">
+          {/* OTA Update Notification Pill */}
+          {updateInfo?.hasUpdate && (
+            <button 
+              className="ota-nav-update-btn"
+              onClick={onOpenUpdateModal}
+              title={`OTA Update Available: v${updateInfo.latestVersion}`}
+            >
+              <Sparkles size={13} />
+              <span>Update v{updateInfo.latestVersion}</span>
+            </button>
+          )}
+
           {/* Quick Search Trigger */}
           <button 
             className="search-trigger-btn"

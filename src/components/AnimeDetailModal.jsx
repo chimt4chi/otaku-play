@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { X, Play, Star, Bookmark, Calendar, Film, Layers, UserCheck, Download } from 'lucide-react';
-import { getAnimeDetails } from '../services/api';
+import { getAnimeDetails, resolveEpisodeCount } from '../services/api';
 import AnimeCard from './AnimeCard';
 import DownloadModal from './DownloadModal';
 
@@ -87,7 +87,7 @@ export default function AnimeDetailModal({
                   </span>
                 )}
                 {details.format && <span className="badge">{details.format}</span>}
-                {details.episodes && <span className="badge">{details.episodes} Ep</span>}
+                <span className="badge">{resolveEpisodeCount(details)} Ep</span>
                 {details.status && <span className="badge">{details.status}</span>}
               </div>
 

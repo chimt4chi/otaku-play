@@ -918,6 +918,12 @@ button {
   display: block;
 }
 
+.video-frame-container:fullscreen iframe,
+.video-frame-container:-webkit-full-screen iframe {
+  width: 100%;
+  height: 100%;
+}
+
 .player-loading-overlay {
   position: absolute;
   inset: 0;
@@ -3388,4 +3394,304 @@ body:has(.search-modal-backdrop) {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+
+/* ==========================================================================
+   OTA (Over-The-Air) Update System Styling
+   ========================================================================== */
+
+.ota-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(5, 7, 13, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  padding-top: calc(1rem + var(--sat));
+  padding-bottom: calc(1rem + var(--sab));
+  animation: otaFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes otaFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ota-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 30px var(--accent-glow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: otaSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes otaSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ota-modal-header-accent {
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(90deg, var(--accent-color), #a78bfa, var(--accent-color));
+  background-size: 200% 100%;
+  animation: otaGradientFlow 3s ease infinite;
+}
+
+@keyframes otaGradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.ota-modal-header {
+  padding: 1.25rem 1.5rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ota-modal-icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 15px var(--accent-glow);
+}
+
+.ota-badge-pill {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--accent-color);
+  text-transform: uppercase;
+}
+
+.ota-modal-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-top: 0.15rem;
+  line-height: 1.25;
+}
+
+.ota-version-strip {
+  margin: 0 1.5rem 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ota-ver-pill {
+  display: flex;
+  flex-direction: column;
+}
+
+.ota-ver-pill .label {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+
+.ota-ver-pill .val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.ota-ver-pill.latest .val {
+  color: var(--accent-color);
+  text-shadow: 0 0 10px var(--accent-glow);
+}
+
+.ota-ver-arrow {
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+}
+
+.ota-size-badge {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-full);
+  background: var(--badge-bg);
+  border: 1px solid var(--badge-border);
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.ota-modal-content {
+  padding: 0 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ota-changelog-container {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.ota-changelog-header {
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.04em;
+}
+
+.ota-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.ota-action-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.ota-action-btn.secondary {
+  opacity: 0.85;
+}
+
+.ota-download-section {
+  padding: 1rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.ota-progress-pct {
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: var(--accent-color);
+}
+
+.ota-progress-track {
+  width: 100%;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.ota-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-color), #a78bfa);
+  border-radius: var(--radius-full);
+  transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 12px var(--accent-color);
+}
+
+.ota-permission-box,
+.ota-success-box,
+.ota-error-box {
+  padding: 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  text-align: center;
+}
+
+.ota-modal-footer {
+  padding: 0.85rem 1.5rem;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+
+.ota-github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--accent-color);
+  text-decoration: none;
+  transition: opacity var(--transition-fast);
+}
+
+.ota-github-link:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+/* Update Banner Pill in Navbar */
+.ota-nav-update-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-glow);
+  color: var(--accent-color);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: 0 0 12px var(--accent-glow);
+  animation: otaPulseGlow 2.5s infinite;
+}
+
+@keyframes otaPulseGlow {
+  0%, 100% { box-shadow: 0 0 8px var(--accent-glow); }
+  50% { box-shadow: 0 0 18px var(--accent-color); }
+}
+
+.ota-nav-update-btn:hover {
+  transform: translateY(-1px);
+  background: var(--accent-color);
+  color: #07080d;
 }

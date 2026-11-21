@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Download, X, Check, Copy, HardDrive, Sparkles, Film, ExternalLink, ShieldCheck } from 'lucide-react';
 import { saveDownload, isEpisodeDownloaded } from '../services/storage';
+import { resolveEpisodeCount } from '../services/api';
 
 export default function DownloadModal({
   isOpen,
@@ -55,7 +56,7 @@ export default function DownloadModal({
         coverImage: anime.coverImage,
         bannerImage: anime.bannerImage,
         episode: currentEpisode,
-        totalEpisodes: anime.episodes || 24,
+        totalEpisodes: resolveEpisodeCount(anime),
         track,
         server,
         quality,

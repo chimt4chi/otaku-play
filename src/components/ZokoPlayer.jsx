@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Play,
   Pause,
@@ -27,7 +27,7 @@ import {
   Tv,
   Download
 } from 'lucide-react';
-import { getAnimeDetails, fetchFullFranchiseSeasons } from '../services/api';
+import { getAnimeDetails, fetchFullFranchiseSeasons, resolveEpisodeCount, getAnimeSagasOrSeasons } from '../services/api';
 import { savePlayerConfig, getPlayerConfig } from '../services/storage';
 import AnimeCard from './AnimeCard';
 import DownloadModal from './DownloadModal';
@@ -143,7 +143,20 @@ export default function ZokoPlayer({
     return () => { active = false; };
   }, [currentAnime.id]);
 
-  const totalEpisodes = currentAnime.episodes || 24;
+  const totalEpisodes = useMemo(() => {
+    const mediaToUse = (detailsData && detailsData.id === currentAnime.id) ? detailsData : currentAnime;
+    return resolveEpisodeCount(mediaToUse);
+  }, [currentAnime, detailsData]);
+
+  const sagas = useMemo(() => {
+    const mediaToUse = (detailsData && detailsData.id === currentAnime.id) ? detailsData : currentAnime;
+    return getAnimeSagasOrSeasons(mediaToUse);
+  }, [currentAnime, detailsData]);
+
+  const activeSaga = useMemo(() => {
+    if (!sagas || sagas.length === 0) return null;
+    return sagas.find(s => currentEpisode >= s.startEp && currentEpisode <= s.endEp) || sagas[0];
+  }, [sagas, currentEpisode]);
 
   // Source & ID Fallback Bug Fix: Fallback to 'ani' if MAL ID is missing
   const hasMalId = Boolean(currentAnime.idMal);
@@ -417,6 +430,21 @@ export default function ZokoPlayer({
     }
   };
 
+  const handleDropdownSelect = (value) => {
+    if (typeof value === 'string' && value.startsWith('saga-')) {
+      const sNum = parseInt(value.replace('saga-', ''), 10);
+      const targetSaga = sagas.find(s => s.sagaNumber === sNum);
+      if (targetSaga) {
+        currentTimeRef.current = 0;
+        setCurrentEpisode(targetSaga.startEp);
+        setPlayerLoading(true);
+        showToast(`Jumped to ${targetSaga.name} (Episode ${targetSaga.startEp})`);
+      }
+    } else {
+      handleSeasonChange(Number(value));
+    }
+  };
+
   const handleTrackChange = (newTrack) => {
     if (newTrack === currentTrack) return;
     setCurrentTrack(newTrack);
@@ -501,7 +529,9 @@ export default function ZokoPlayer({
   }
 
   const title = currentAnime.title?.english || currentAnime.title?.romaji || 'Anime';
-  const activeSeasonName = currentAnime.seasonName || (allSeasons.find(s => s.id === currentAnime.id)?.seasonName) || 'Season 1';
+  const activeSeasonName = activeSaga
+    ? activeSaga.name
+    : (currentAnime.seasonName || (allSeasons.find(s => s.id === currentAnime.id)?.seasonName) || 'Season 1');
   const characters = detailsData?.characters?.edges || currentAnime.characters?.edges || [];
   const recommendations = detailsData?.recommendations?.nodes?.map(n => n.mediaRecommendation).filter(Boolean) || currentAnime.recommendations?.nodes?.map(n => n.mediaRecommendation).filter(Boolean) || [];
 
@@ -644,8 +674,11 @@ export default function ZokoPlayer({
             ref={iframeRef}
             src={embedUrl}
             title={`${title} - Episode ${currentEpisode}`}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-orientation-lock"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
+            loading="eager"
+            referrerPolicy="origin"
             onLoad={() => setPlayerLoading(false)}
           />
         </div>
@@ -828,13 +861,13 @@ export default function ZokoPlayer({
               </button>
             )}
 
-            {allSeasons.length > 1 && (
+            {(allSeasons.length > 1 || sagas.length > 1) && (
               <button
                 className={`player-tab-btn ${infoTab === 'seasons' ? 'active' : ''}`}
                 onClick={() => setInfoTab('seasons')}
               >
                 <Layers size={14} />
-                <span>Seasons ({allSeasons.length})</span>
+                <span>{sagas.length > 1 ? `Sagas & Arcs (${sagas.length})` : `Seasons (${allSeasons.length})`}</span>
               </button>
             )}
 
@@ -919,16 +952,59 @@ export default function ZokoPlayer({
           {/* Tab 3: Seasons & Arcs */}
           {infoTab === 'seasons' && (
             <div>
-              {mainSeasons.length > 0 && (
+              {/* Sagas & Arcs section for long-running series like One Piece, Naruto, Bleach */}
+              {sagas.length > 1 && (
                 <div style={{ marginBottom: '1.5rem' }}>
                   <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.04em' }}>
-                    Main Story Seasons ({mainSeasons.length})
+                    Story Sagas & Arcs ({sagas.length})
+                  </div>
+                  <div className="seasons-tab-grid">
+                    {sagas.map((s) => {
+                      const isActive = activeSaga?.sagaNumber === s.sagaNumber;
+                      const poster = currentAnime.coverImage?.large || currentAnime.coverImage?.medium;
+
+                      return (
+                        <div
+                          key={`saga-tab-${s.sagaNumber}`}
+                          className={`season-tab-card ${isActive ? 'active' : ''}`}
+                          onClick={() => {
+                            currentTimeRef.current = 0;
+                            setCurrentEpisode(s.startEp);
+                            setPlayerLoading(true);
+                            showToast(`Jumped to ${s.name} (Ep ${s.startEp})`);
+                          }}
+                        >
+                          <img src={poster} alt={s.name} className="season-tab-poster" loading="lazy" />
+                          <div className="season-tab-meta">
+                            <div className="season-tab-name" title={s.name}>{s.name}</div>
+                            <div className="season-tab-sub">Episodes {s.startEp} - {s.endEp} ({s.episodeCount} eps)</div>
+                            {isActive ? (
+                              <span className="badge badge-brand" style={{ alignSelf: 'flex-start', marginTop: '0.2rem', fontSize: '0.65rem' }}>
+                                Now Playing (Ep {currentEpisode})
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: '0.72rem', color: 'var(--accent-color)', marginTop: '0.2rem', fontWeight: 600 }}>
+                                Jump to Arc →
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {mainSeasons.filter(s => s.id !== currentAnime.id || sagas.length <= 1).length > 0 && (
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.04em' }}>
+                    Franchise Seasons & Sequels ({mainSeasons.length})
                   </div>
                   <div className="seasons-tab-grid">
                     {mainSeasons.map((s, idx) => {
                       const sTitle = s.title?.english || s.title?.romaji || `Season ${idx + 1}`;
                       const sName = s.seasonName || `Season ${idx + 1}`;
-                      const isActive = s.id === currentAnime.id;
+                      const isActive = s.id === currentAnime.id && sagas.length <= 1;
                       const poster = s.coverImage?.large || s.coverImage?.medium || currentAnime.coverImage?.large;
 
                       return (
@@ -997,7 +1073,7 @@ export default function ZokoPlayer({
                 </div>
               )}
 
-              {mainSeasons.length === 0 && sideContent.length === 0 && (
+              {sagas.length <= 1 && mainSeasons.length === 0 && sideContent.length === 0 && (
                 <div className="seasons-tab-grid">
                   {allSeasons.map((s, idx) => {
                     const sTitle = s.title?.english || s.title?.romaji || `Season ${idx + 1}`;
@@ -1062,18 +1138,39 @@ export default function ZokoPlayer({
             </span>
           </div>
 
-          {/* Season Selector Dropdown */}
-          {allSeasons.length > 1 && (
-            <div className="season-select-wrapper" title="Select anime season, part or movie">
+          {/* Season & Story Arc Selector Dropdown */}
+          {(sagas.length > 1 || allSeasons.length > 1) && (
+            <div className="season-select-wrapper" title="Select anime story arc, season or movie">
               <Layers size={15} color="var(--accent-color)" />
               <select
                 className="season-select"
-                value={currentAnime.id}
-                onChange={(e) => handleSeasonChange(Number(e.target.value))}
-                aria-label="Select season"
+                value={sagas.length > 1 ? `saga-${activeSaga?.sagaNumber || 1}` : currentAnime.id}
+                onChange={(e) => handleDropdownSelect(e.target.value)}
+                aria-label="Select season or story arc"
               >
-                {mainSeasons.length > 0 ? (
+                {/* 1. If long-running series has Sagas (e.g. One Piece, Naruto, Bleach) */}
+                {sagas.length > 1 ? (
                   <>
+                    <optgroup label="Story Sagas / Arcs">
+                      {sagas.map(s => (
+                        <option key={`saga-${s.sagaNumber}`} value={`saga-${s.sagaNumber}`}>
+                          {s.name} (Ep {s.startEp}-{s.endEp})
+                        </option>
+                      ))}
+                    </optgroup>
+                    {mainSeasons.filter(s => s.id !== currentAnime.id).length > 0 && (
+                      <optgroup label="Other Franchise Seasons">
+                        {mainSeasons.filter(s => s.id !== currentAnime.id).map((s, idx) => (
+                          <option key={s.id} value={s.id}>
+                            {s.seasonName || `Season ${idx + 1}`} ({s.episodes || '?'} eps)
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </>
+                ) : (
+                  /* 2. Standard multi-season anime (e.g. Attack on Titan, Demon Slayer, MHA) */
+                  mainSeasons.length > 0 && (
                     <optgroup label="Main Story Seasons">
                       {mainSeasons.map((s, idx) => (
                         <option key={s.id} value={s.id}>
@@ -1081,17 +1178,22 @@ export default function ZokoPlayer({
                         </option>
                       ))}
                     </optgroup>
-                    {sideContent.length > 0 && (
-                      <optgroup label="Movies, OVAs & Specials">
-                        {sideContent.map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.seasonName} ({s.episodes || 1} eps)
-                          </option>
-                        ))}
-                      </optgroup>
-                    )}
-                  </>
-                ) : (
+                  )
+                )}
+
+                {/* 3. Movies, OVAs & Specials */}
+                {sideContent.length > 0 && (
+                  <optgroup label="Movies, OVAs & Specials">
+                    {sideContent.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.seasonName} ({s.episodes || 1} eps)
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+
+                {/* 4. Multi-season standard shows with no sagas */}
+                {sagas.length <= 1 && mainSeasons.length === 0 && sideContent.length === 0 && allSeasons.length > 1 && (
                   allSeasons.map((s, idx) => (
                     <option key={s.id} value={s.id}>
                       {s.seasonName || `Season ${idx + 1}`} ({s.episodes || '?'} eps)

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, Play, Trash2, HardDrive, Film, ArrowRight, ShieldCheck, Sparkles, Smartphone, ExternalLink } from 'lucide-react';
+import { Download, Play, Trash2, HardDrive, Film, ArrowRight, ShieldCheck, Sparkles, Smartphone, ExternalLink, RefreshCw } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 
 const isNativeApp = Capacitor.isNativePlatform();
@@ -9,7 +9,11 @@ export default function DownloadsView({
   onWatchAnime,
   onRemoveDownload,
   onClearAllDownloads,
-  onBrowseAnime
+  onBrowseAnime,
+  updateInfo,
+  onCheckUpdates,
+  onOpenUpdateModal,
+  checkingUpdate = false,
 }) {
   const totalMb = downloads.reduce((acc, curr) => acc + (curr.sizeMb || 140), 0);
   const formattedStorage = totalMb > 1024
@@ -49,47 +53,157 @@ export default function DownloadsView({
         )}
       </div>
 
-      {/* Dedicated Android App APK Feature Card (pointless inside the installed app) */}
-      {!isNativeApp && (
-      <div className="apk-feature-banner">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-          <div className="apk-banner-icon">
-            <Smartphone size={24} />
+      {/* Android OTA Updates Banner (Native) or APK Download Card (Web) */}
+      {isNativeApp ? (
+        <div 
+          className="apk-feature-banner" 
+          style={{ 
+            borderColor: updateInfo?.hasUpdate ? 'var(--accent-color)' : undefined,
+            boxShadow: updateInfo?.hasUpdate ? '0 0 20px var(--accent-glow)' : undefined
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+            <div 
+              className="apk-banner-icon"
+              style={{
+                background: updateInfo?.hasUpdate ? 'var(--accent-color)' : undefined,
+                color: updateInfo?.hasUpdate ? '#07080d' : undefined
+              }}
+            >
+              {updateInfo?.hasUpdate ? <Sparkles size={24} /> : <Smartphone size={24} />}
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0, textTransform: 'uppercase' }}>
+                  OtakuPlay Android (v{updateInfo?.currentVersion || '1.0.0'})
+                </h3>
+                {updateInfo?.hasUpdate && (
+                  <span className="badge badge-brand" style={{ fontSize: '0.68rem', padding: '0.15rem 0.5rem' }}>
+                    v{updateInfo.latestVersion} Available
+                  </span>
+                )}
+              </div>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.2rem', margin: 0 }}>
+                {updateInfo?.hasUpdate
+                  ? `An over-the-air update (${updateInfo.latestVersion}) is ready to download & install directly.`
+                  : 'Over-The-Air updater is active. Your app is running the official release.'}
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0, textTransform: 'uppercase' }}>
-              OtakuPlay Dedicated Android App
-            </h3>
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.2rem', margin: 0 }}>
-              Install the dedicated APK for notch-free playback, offline cache & native hardware back controls.
-            </p>
+
+          <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            {updateInfo?.hasUpdate ? (
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={onOpenUpdateModal}
+                style={{ padding: '0.65rem 1.2rem', fontSize: '0.82rem', flexShrink: 0 }}
+              >
+                <Sparkles size={16} />
+                <span>Update Now (v{updateInfo.latestVersion})</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={onCheckUpdates}
+                disabled={checkingUpdate}
+                style={{ padding: '0.65rem 1.2rem', fontSize: '0.82rem', flexShrink: 0 }}
+              >
+                <RefreshCw 
+                  size={14} 
+                  style={{ animation: checkingUpdate ? 'spin 1s linear infinite' : 'none' }} 
+                />
+                <span>{checkingUpdate ? 'Checking...' : 'Check for Updates'}</span>
+              </button>
+            )}
+
+            <a
+              href="https://github.com/chimt4chi/otaku-play/releases"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary"
+              style={{ padding: '0.65rem 1rem', fontSize: '0.82rem', flexShrink: 0 }}
+              title="View all versions and release notes on GitHub"
+            >
+              <ExternalLink size={14} />
+              <span>All Releases</span>
+            </a>
           </div>
         </div>
+      ) : (
+        <div className="apk-feature-banner">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+            <div className="apk-banner-icon">
+              <Smartphone size={24} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0, textTransform: 'uppercase' }}>
+                  OtakuPlay Dedicated Android App
+                </h3>
+                {updateInfo?.hasUpdate && (
+                  <span className="badge badge-brand" style={{ fontSize: '0.68rem', padding: '0.15rem 0.5rem' }}>
+                    v{updateInfo.latestVersion} Available
+                  </span>
+                )}
+              </div>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.2rem', margin: 0 }}>
+                Install the dedicated APK for notch-free playback, offline cache & native hardware back controls.
+              </p>
+            </div>
+          </div>
 
-        <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center' }}>
-          <a
-            href="/assets/OtakuPlay.apk"
-            download="OtakuPlay.apk"
-            className="btn-primary"
-            style={{ padding: '0.65rem 1.2rem', fontSize: '0.82rem', flexShrink: 0 }}
-          >
-            <Download size={16} />
-            <span>Download APK (v1.0.0)</span>
-          </a>
+          <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            {updateInfo?.hasUpdate ? (
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={onOpenUpdateModal}
+                style={{ padding: '0.65rem 1.2rem', fontSize: '0.82rem', flexShrink: 0 }}
+              >
+                <Sparkles size={16} />
+                <span>Get v{updateInfo.latestVersion} APK</span>
+              </button>
+            ) : (
+              <a
+                href="/assets/OtakuPlay.apk"
+                download="OtakuPlay.apk"
+                className="btn-primary"
+                style={{ padding: '0.65rem 1.2rem', fontSize: '0.82rem', flexShrink: 0 }}
+              >
+                <Download size={16} />
+                <span>Download APK (v1.0.0)</span>
+              </a>
+            )}
 
-          <a
-            href="https://github.com/chimt4chi/otaku-play/releases"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-secondary"
-            style={{ padding: '0.65rem 1rem', fontSize: '0.82rem', flexShrink: 0 }}
-            title="View all versions and release notes on GitHub"
-          >
-            <ExternalLink size={14} />
-            <span>All GitHub Releases</span>
-          </a>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={onCheckUpdates}
+              disabled={checkingUpdate}
+              style={{ padding: '0.65rem 1rem', fontSize: '0.82rem', flexShrink: 0 }}
+            >
+              <RefreshCw 
+                size={14} 
+                style={{ animation: checkingUpdate ? 'spin 1s linear infinite' : 'none' }} 
+              />
+              <span>{checkingUpdate ? 'Checking...' : 'Check Updates'}</span>
+            </button>
+
+            <a
+              href="https://github.com/chimt4chi/otaku-play/releases"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary"
+              style={{ padding: '0.65rem 1rem', fontSize: '0.82rem', flexShrink: 0 }}
+              title="View all versions and release notes on GitHub"
+            >
+              <ExternalLink size={14} />
+              <span>All Releases</span>
+            </a>
+          </div>
         </div>
-      </div>
       )}
 
       {/* Downloads List */}

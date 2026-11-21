@@ -19,6 +19,7 @@ import {
 import { App as CapApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { Smartphone } from 'lucide-react';
+import { checkForAppUpdate } from './services/otaService';
 
 // Everything except the home screen is split out of the initial bundle
 const GenresView = lazy(() => import('./views/GenresView'));
@@ -29,6 +30,7 @@ const DownloadsView = lazy(() => import('./views/DownloadsView'));
 const ZokoPlayer = lazy(() => import('./components/ZokoPlayer'));
 const AnimeDetailModal = lazy(() => import('./components/AnimeDetailModal'));
 const SearchModal = lazy(() => import('./components/SearchModal'));
+const OtaUpdateModal = lazy(() => import('./components/OtaUpdateModal'));
 
 const isNativeApp = Capacitor.isNativePlatform();
 
@@ -54,6 +56,52 @@ export default function App() {
   const [continueWatchingList, setContinueWatchingList] = useState(getContinueWatchingList());
   const [watchlist, setWatchlist] = useState(getWatchlist());
   const [downloads, setDownloads] = useState(getDownloads());
+
+  // Over-The-Air Update States
+  const [updateInfo, setUpdateInfo] = useState(null);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+
+  // Background OTA update check on startup
+  useEffect(() => {
+    let isMounted = true;
+    const runUpdateCheck = async () => {
+      try {
+        const result = await checkForAppUpdate(false);
+        if (isMounted && result?.hasUpdate) {
+          setUpdateInfo(result);
+          if (!result.isDismissed) {
+            setIsUpdateModalOpen(true);
+          }
+        }
+      } catch (err) {
+        // Silently ignore background check errors
+      }
+    };
+
+    const timer = setTimeout(runUpdateCheck, 2000);
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, []);
+
+  const handleCheckForUpdates = useCallback(async () => {
+    setCheckingUpdate(true);
+    try {
+      const result = await checkForAppUpdate(true);
+      if (result?.hasUpdate) {
+        setUpdateInfo(result);
+        setIsUpdateModalOpen(true);
+      } else {
+        alert(`You're already using the latest version of OtakuPlay (v${result?.currentVersion || '1.0.0'})!`);
+      }
+    } catch (err) {
+      alert('Could not check updates. Please check your internet connection.');
+    } finally {
+      setCheckingUpdate(false);
+    }
+  }, []);
 
   // Apply theme to document
   useEffect(() => {
@@ -174,6 +222,8 @@ export default function App() {
         setAccentColor={(color) => setPlayerConfig(prev => ({ ...prev, accentColor: color }))}
         watchlistCount={watchlist.length}
         downloadsCount={downloads.length}
+        updateInfo={updateInfo}
+        onOpenUpdateModal={() => setIsUpdateModalOpen(true)}
       />
 
       {/* Main Content Router */}
@@ -245,6 +295,10 @@ export default function App() {
             onRemoveDownload={handleRemoveDownload}
             onClearAllDownloads={handleClearAllDownloads}
             onBrowseAnime={() => setCurrentView('home')}
+            updateInfo={updateInfo}
+            onCheckUpdates={handleCheckForUpdates}
+            onOpenUpdateModal={() => setIsUpdateModalOpen(true)}
+            checkingUpdate={checkingUpdate}
           />
         )}
         </Suspense>
@@ -282,6 +336,15 @@ export default function App() {
             onWatchAnime={(anime, ep) => handleWatchAnime(anime, ep || 1)}
           />
         )}
+
+        {/* Over-The-Air Update Modal */}
+        {isUpdateModalOpen && updateInfo && (
+          <OtaUpdateModal
+            updateInfo={updateInfo}
+            onClose={() => setIsUpdateModalOpen(false)}
+            onUpdateComplete={() => setIsUpdateModalOpen(false)}
+          />
+        )}
       </Suspense>
 
       {/* Footer */}
@@ -292,9 +355,9 @@ export default function App() {
               <span style={{ color: 'var(--accent-color)' }}>⚡ OTAKU</span>
               <span>PLAY</span>
             </div>
-            <p style={{ color: 'var(--text-dim)', fontSize: '0.8rem', marginTop: '0.35rem', fontFamily: 'var(--font-mono)' }}>
+            {/* <p style={{ color: 'var(--text-dim)', fontSize: '0.8rem', marginTop: '0.35rem', fontFamily: 'var(--font-mono)' }}>
               Dedicated anime streaming app with ZokoAnime adaptive engine & AniList metadata.
-            </p>
+            </p> */}
           </div>
 
           <div className="footer-actions">
