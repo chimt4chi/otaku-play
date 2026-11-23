@@ -2307,11 +2307,20 @@ button {
 .download-modal-box {
   max-width: 520px;
   width: 100%;
+  /* Prevent overflow on small phones */
+  max-height: calc(100dvh - 2rem - var(--sat, 0px) - var(--sab, 0px));
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg), 0 0 35px var(--accent-glow);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Watch party modal can be taller — allow inner body to scroll */
+.watch-party-modal-box {
+  overflow-y: auto;
 }
 
 .download-modal-header {
@@ -3345,6 +3354,13 @@ body:has(.search-modal-backdrop) {
     /* paints the page background in the safe-area gap above the pinned video */
     box-shadow: 0 calc(var(--sat) * -1) 0 0 var(--bg-main);
   }
+
+  /* Header must stay above the sticky video so its buttons are always tappable */
+  .player-header-bar {
+    position: relative;
+    z-index: 31;
+    background: var(--bg-main);
+  }
 }
 
 @media (max-width: 540px) {
@@ -3426,11 +3442,13 @@ body:has(.search-modal-backdrop) {
   position: relative;
   width: 100%;
   max-width: 520px;
+  /* Prevent card from overflowing small phone screens */
+  max-height: calc(100dvh - 2rem - var(--sat, 0px) - var(--sab, 0px));
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-xl);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 30px var(--accent-glow);
-  overflow: hidden;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   animation: otaSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);

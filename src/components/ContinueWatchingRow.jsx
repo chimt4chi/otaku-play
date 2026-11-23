@@ -24,7 +24,8 @@ export default function ContinueWatchingRow({
       <div className="carousel-row">
         {items.map((item) => {
           const title = item.title?.english || item.title?.romaji || 'Anime';
-          const thumb = item.bannerImage || item.coverImage?.large || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600';
+          const thumb = item.bannerImage || item.coverImage?.large || item.coverImage?.medium || null;
+          const fallbackThumb = 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600';
           const progress = Math.max(5, Math.min(100, item.progressPercent || 0));
 
           return (
@@ -44,7 +45,8 @@ export default function ContinueWatchingRow({
               }}
             >
               <div className="continue-thumb-wrap">
-                <img src={thumb} alt="" className="continue-thumb" loading="lazy" decoding="async" draggable={false} />
+                <img src={thumb || fallbackThumb} alt="" className="continue-thumb" loading="eager" decoding="async" draggable={false}
+                  onError={(e) => { if (e.target.src !== fallbackThumb) e.target.src = fallbackThumb; }} />
                 <div className="card-quick-play">
                   <div className="card-quick-play-btn">
                     <Play size={18} fill="currentColor" style={{ marginLeft: '2px' }} />

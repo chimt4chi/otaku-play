@@ -76,15 +76,21 @@ const MEDIA_FIELDS = `
  */
 export function resolveEpisodeCount(anime) {
   if (!anime) return 24;
+  // Check known long-running series FIRST so AniList's partial episode count
+  // (e.g. 24 for a single cour of One Piece) doesn't mask the real total.
+  const title = (anime.title?.english || anime.title?.romaji || '').toLowerCase();
+  if (anime.id === 21 || title.includes('one piece')) {
+    // Use nextAiringEpisode when available (more accurate for airing), else hardcode
+    if (anime.nextAiringEpisode?.episode && anime.nextAiringEpisode.episode > 1) {
+      return anime.nextAiringEpisode.episode - 1;
+    }
+    return 1180;
+  }
   if (typeof anime.episodes === 'number' && anime.episodes > 0) {
     return anime.episodes;
   }
   if (anime.nextAiringEpisode?.episode && anime.nextAiringEpisode.episode > 1) {
     return anime.nextAiringEpisode.episode - 1;
-  }
-  const title = (anime.title?.english || anime.title?.romaji || '').toLowerCase();
-  if (anime.id === 21 || title.includes('one piece')) {
-    return 1180;
   }
   if (anime.id === 235 || title.includes('detective conan') || title.includes('case closed')) {
     return 1140;

@@ -792,7 +792,6 @@ export default function ZokoPlayer({
             ref={iframeRef}
             src={embedUrl}
             title={`${title} - Episode ${currentEpisode}`}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-orientation-lock"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
             loading="eager"
