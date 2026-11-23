@@ -46,7 +46,7 @@ export function compareVersions(v1, v2) {
 export async function getCurrentAppInfo() {
   const isNative = Capacitor.isNativePlatform();
   let versionName = CURRENT_APP_VERSION;
-  let versionCode = 7;
+  let versionCode = 8;
   let packageName = 'com.otakuplay.app';
   let canInstallUnknownApps = true;
 

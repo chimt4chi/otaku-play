@@ -60,42 +60,53 @@ export default function WatchPartyDrawer({
   if (!isOpen) return null;
 
   return (
-    <aside className="watch-party-drawer" aria-label="Watch Party Room">
-      {/* Drawer Header */}
-      <div className="party-drawer-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          <div className="party-live-pulse" title="Room Active" />
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span className="party-room-badge" onClick={handleCopyInvite} title="Click to copy invite link">
-                {roomCode}
-                {copied ? <Check size={11} color="var(--accent-color)" /> : <Copy size={11} />}
-              </span>
-              {copied && <span className="copied-tag">Link Copied!</span>}
+    <>
+      <div className="party-drawer-backdrop" onClick={onClose} aria-hidden="true" />
+      <aside className="watch-party-drawer" aria-label="Watch Party Room">
+        {/* Drawer Header */}
+        <div className="party-drawer-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <div className="party-live-pulse" title="Room Active" />
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <button
+                  type="button"
+                  className="party-room-badge"
+                  onClick={handleCopyInvite}
+                  title="Click to copy invite link"
+                  aria-label={`Room Code ${roomCode}, click to copy invite link`}
+                >
+                  <span>{roomCode}</span>
+                  {copied ? <Check size={12} color="var(--accent-color)" /> : <Copy size={12} />}
+                </button>
+                {copied && <span className="copied-tag">Link Copied!</span>}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-          <button
-            className={`party-members-btn ${showMembers ? 'active' : ''}`}
-            onClick={() => setShowMembers(!showMembers)}
-            title="View participants"
-          >
-            <Users size={14} />
-            <span>{members.length}</span>
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+            <button
+              type="button"
+              className={`party-members-btn ${showMembers ? 'active' : ''}`}
+              onClick={() => setShowMembers(!showMembers)}
+              title="View participants"
+              aria-label={`View participants (${members.length})`}
+            >
+              <Users size={15} />
+              <span>{members.length}</span>
+            </button>
 
-          <button
-            className="party-icon-btn"
-            onClick={onClose}
-            title="Minimize drawer"
-            aria-label="Minimize drawer"
-          >
-            <ChevronRight size={18} />
-          </button>
+            <button
+              type="button"
+              className="party-icon-btn"
+              onClick={onClose}
+              title="Close party chat"
+              aria-label="Close party chat"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
-      </div>
 
       {/* Host / Sync Status Strip */}
       <div className="party-status-strip">
@@ -260,6 +271,7 @@ export default function WatchPartyDrawer({
           <Send size={15} />
         </button>
       </form>
-    </aside>
+      </aside>
+    </>
   );
 }

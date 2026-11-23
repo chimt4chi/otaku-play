@@ -3860,18 +3860,37 @@ body:has(.ota-modal-backdrop) {
   animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.party-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 999;
+  animation: fadeIn 0.2s ease;
+}
+
+@media (min-width: 1024px) {
+  .party-drawer-backdrop {
+    display: none;
+  }
+}
+
 @keyframes slideInRight {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
 }
 
 .party-drawer-header {
-  padding: 0.9rem 1.1rem;
+  padding-top: max(0.9rem, calc(var(--sat) + 0.5rem), calc(env(safe-area-inset-top, 0px) + 0.5rem));
+  padding-bottom: 0.85rem;
+  padding-left: max(1.1rem, calc(var(--sal) + 0.6rem));
+  padding-right: max(1.1rem, calc(var(--sar) + 0.6rem));
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(7, 9, 15, 0.5);
+  background: rgba(7, 9, 15, 0.65);
   flex-shrink: 0;
 }
 
@@ -3991,16 +4010,13 @@ body:has(.ota-modal-backdrop) {
 
 /* Members Slide-out panel */
 .party-members-panel {
-  position: absolute;
-  top: 60px;
-  left: 0;
-  right: 0;
-  background: var(--bg-main);
+  background: var(--bg-surface-elevated);
   border-bottom: 1px solid var(--border-subtle);
-  padding: 1rem 1.1rem;
+  padding: 0.9rem 1.1rem;
   z-index: 20;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
   animation: fadeIn 0.15s ease;
+  flex-shrink: 0;
 }
 
 .party-members-list {
@@ -4289,4 +4305,62 @@ body:has(.ota-modal-backdrop) {
   background: #10b981;
   box-shadow: 0 0 6px #10b981;
   animation: pulseGreen 1.8s infinite;
+}
+
+/* Mobile Optimization for Watch Party Chat Drawer & Status Bar Clearance */
+@media (max-width: 768px) {
+  .watch-party-drawer {
+    width: 100%;
+    max-width: min(390px, 92vw);
+  }
+
+  .party-drawer-header {
+    /* Push header and action buttons well below mobile status bar / camera notch */
+    padding-top: max(3.2rem, calc(var(--sat) + 1.2rem), calc(env(safe-area-inset-top, 0px) + 1.2rem));
+    padding-bottom: 0.95rem;
+    padding-left: max(1rem, calc(var(--sal) + 0.75rem));
+    padding-right: max(1rem, calc(var(--sar) + 0.75rem));
+  }
+
+  .party-room-badge {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.82rem;
+    min-height: 38px;
+  }
+
+  .party-members-btn {
+    padding: 0.45rem 0.8rem;
+    font-size: 0.82rem;
+    min-height: 38px;
+  }
+
+  .party-icon-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .party-status-strip {
+    padding: 0.65rem 1.1rem;
+  }
+
+  .party-input-bar {
+    padding-bottom: max(0.9rem, calc(var(--sab) + 0.7rem), calc(env(safe-area-inset-bottom, 0px) + 0.7rem));
+  }
+}
+
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+  .watch-party-drawer {
+    width: 320px;
+    max-width: 80vw;
+  }
+
+  .party-drawer-header {
+    padding-top: max(0.6rem, calc(var(--sat) + 0.4rem));
+    padding-bottom: 0.5rem;
+    padding-right: max(1rem, calc(var(--sar) + 0.6rem));
+  }
+
+  .party-input-bar {
+    padding-bottom: max(0.6rem, calc(var(--sab) + 0.4rem));
+  }
 }
