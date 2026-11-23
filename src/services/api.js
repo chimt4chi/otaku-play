@@ -895,3 +895,24 @@ export const ALL_GENRES = [
   "Supernatural",
   "Thriller"
 ];
+
+export const PRODUCTION_URL = 'https://otaku-play.vercel.app';
+
+/**
+ * Returns the public web URL of the application.
+ * Replaces localhost and Capacitor internal origins with the live production URL.
+ */
+export function getPublicBaseUrl() {
+  if (typeof window === 'undefined') return PRODUCTION_URL;
+  const origin = window.location.origin;
+  if (
+    !origin ||
+    origin.includes('localhost') ||
+    origin.includes('127.0.0.1') ||
+    origin.startsWith('capacitor://') ||
+    origin.startsWith('file://')
+  ) {
+    return PRODUCTION_URL;
+  }
+  return origin;
+}

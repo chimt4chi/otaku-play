@@ -77,7 +77,7 @@ export default function App() {
   const [isWatchPartyModalOpen, setIsWatchPartyModalOpen] = useState(false);
   const [initialPartyCode, setInitialPartyCode] = useState('');
 
-  // Watch Party URL param listener on startup: ?party=OTK-XXXX
+  // Deep link listener on startup: ?party=OTK-XXXX or ?watch=123&ep=1
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -85,6 +85,24 @@ export default function App() {
       if (party) {
         setInitialPartyCode(party);
         setIsWatchPartyModalOpen(true);
+      }
+
+      const watchId = params.get('watch');
+      const epParam = params.get('ep');
+      if (watchId) {
+        const idNum = parseInt(watchId, 10);
+        if (!isNaN(idNum)) {
+          getAnimeDetails(idNum).then(anime => {
+            if (anime) {
+              setActiveAnime(anime);
+              setActiveEpisode(parseInt(epParam, 10) || 1);
+              setActiveTime(0);
+              setCurrentView('player');
+            }
+          }).catch(err => {
+            console.warn('Failed to load anime from deep link:', err);
+          });
+        }
       }
     } catch (e) {
       // Ignored

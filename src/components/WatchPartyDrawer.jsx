@@ -15,6 +15,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { ANIME_REACTIONS, watchPartyService } from '../services/watchPartyService';
+import { getPublicBaseUrl } from '../services/api';
 
 export default function WatchPartyDrawer({
   isOpen,
@@ -40,7 +41,8 @@ export default function WatchPartyDrawer({
   }, [messages]);
 
   const handleCopyInvite = () => {
-    const inviteUrl = `${window.location.origin}${window.location.pathname}?party=${roomCode}`;
+    const baseUrl = getPublicBaseUrl();
+    const inviteUrl = `${baseUrl}/?party=${roomCode}`;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(inviteUrl);
       setCopied(true);

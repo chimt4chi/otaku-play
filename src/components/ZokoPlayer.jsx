@@ -28,7 +28,7 @@ import {
   Download,
   Users
 } from 'lucide-react';
-import { getAnimeDetails, fetchFullFranchiseSeasons, resolveEpisodeCount, getAnimeSagasOrSeasons } from '../services/api';
+import { getAnimeDetails, fetchFullFranchiseSeasons, resolveEpisodeCount, getAnimeSagasOrSeasons, getPublicBaseUrl } from '../services/api';
 import { savePlayerConfig, getPlayerConfig } from '../services/storage';
 import { watchPartyService } from '../services/watchPartyService';
 import AnimeCard from './AnimeCard';
@@ -601,14 +601,19 @@ export default function ZokoPlayer({
   };
 
   const handleShare = () => {
+    const baseUrl = getPublicBaseUrl();
+    const shareUrl = `${baseUrl}/?watch=${currentAnime.id}&ep=${currentEpisode}`;
+    const shareTitle = `${currentAnime.title?.english || currentAnime.title?.romaji || 'Anime'} - Episode ${currentEpisode}`;
+
     if (navigator.share) {
       navigator.share({
-        title: `${currentAnime.title?.english || 'Anime'} - Episode ${currentEpisode}`,
-        url: window.location.href
+        title: shareTitle,
+        text: `Watch ${shareTitle} on OtakuPlay`,
+        url: shareUrl
       }).catch(() => {});
     } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
-      showToast('Link copied to clipboard!');
+      navigator.clipboard.writeText(shareUrl);
+      showToast('Stream link copied to clipboard!');
     }
   };
 
