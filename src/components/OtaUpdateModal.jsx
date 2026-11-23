@@ -302,6 +302,9 @@ export default function OtaUpdateModal({ updateInfo, onClose, onUpdateComplete }
               <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0 auto 1.25rem', maxWidth: '380px' }}>
                 The package installer should open automatically. If it didn't prompt, tap <strong>Install Now</strong> below.
               </p>
+              <div style={{ fontSize: '0.74rem', color: '#fbbf24', background: 'rgba(251, 191, 36, 0.1)', border: '1px solid rgba(251, 191, 36, 0.25)', borderRadius: 'var(--radius-sm)', padding: '0.5rem 0.75rem', margin: '0 auto 1.1rem', maxWidth: '380px', textAlign: 'left', lineHeight: 1.4 }}>
+                ⚠️ <strong>Note:</strong> If Android says "package conflicts with an existing package", please uninstall your older version first. All future updates will then install smoothly!
+              </div>
               <div style={{ display: 'flex', gap: '0.65rem', justifyContent: 'center' }}>
                 <button 
                   type="button" 

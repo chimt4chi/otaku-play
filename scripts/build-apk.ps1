@@ -19,7 +19,7 @@ npx cap sync android
 Write-Host "==> Compiling Android APK with Gradle..."
 Push-Location android
 try {
-    .\gradlew.bat assembleDebug
+    .\gradlew.bat assembleRelease
     if ($LASTEXITCODE -ne 0) {
         throw "Gradle build failed with exit code $LASTEXITCODE"
     }
@@ -27,7 +27,10 @@ try {
     Pop-Location
 }
 
-$sourceApk = "android\app\build\outputs\apk\debug\app-debug.apk"
+$sourceApk = "android\app\build\outputs\apk\release\app-release.apk"
+if (-not (Test-Path $sourceApk)) {
+    $sourceApk = "android\app\build\outputs\apk\debug\app-debug.apk"
+}
 $targetApk = "OtakuPlay.apk"
 $assetsApk = "public\assets\OtakuPlay.apk"
 

@@ -64,7 +64,7 @@ jobs:
           ANDROID_HOME: /usr/local/lib/android/sdk
         run: |
           cd android
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleRelease --no-daemon
 
       - name: Prepare Versioned APK Asset
         id: prepare
@@ -74,7 +74,7 @@ jobs:
             TAG="${{ github.event.inputs.version }}"
           fi
           APK_NAME="OtakuPlay-${TAG}.apk"
-          cp android/app/build/outputs/apk/debug/app-debug.apk "${APK_NAME}"
+          cp android/app/build/outputs/apk/release/app-release.apk "${APK_NAME}"
           echo "apk_name=${APK_NAME}" >> $GITHUB_OUTPUT
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
 
