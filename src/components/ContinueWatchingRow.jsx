@@ -1,11 +1,60 @@
-import React from 'react';
-import { Play, X, Clock } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Play, X, Clock, Tv } from 'lucide-react';
+import { getAnimeDetails } from '../services/api';
+import { updateContinueWatching } from '../services/storage';
 
 export default function ContinueWatchingRow({ 
   items = [], 
   onResume, 
   onRemove 
 }) {
+  const [resolvedCovers, setResolvedCovers] = useState({});
+  const [failedImages, setFailedImages] = useState({});
+  const fetchingRef = useRef(new Set());
+
+  // Prioritize the actual cover of the anime (poster/coverImage)
+  const getCoverUrl = (item) => {
+    const c = item.coverImage || resolvedCovers[item.id];
+    if (c) {
+      if (typeof c === 'string' && c.trim()) return c;
+      if (c.extraLarge) return c.extraLarge;
+      if (c.large) return c.large;
+      if (c.medium) return c.medium;
+    }
+    if (typeof item.bannerImage === 'string' && item.bannerImage.trim()) {
+      return item.bannerImage;
+    }
+    return null;
+  };
+
+  // Backfill official cover from AniList for any continue-watching item missing it
+  useEffect(() => {
+    if (!items || items.length === 0) return;
+
+    items.forEach(item => {
+      const hasCover = item.coverImage && (
+        (typeof item.coverImage === 'string' && item.coverImage.trim()) ||
+        item.coverImage.extraLarge ||
+        item.coverImage.large ||
+        item.coverImage.medium
+      );
+
+      if (!hasCover && item.id && !fetchingRef.current.has(item.id)) {
+        fetchingRef.current.add(item.id);
+        getAnimeDetails(item.id).then(details => {
+          if (details?.coverImage) {
+            setResolvedCovers(prev => ({ ...prev, [item.id]: details.coverImage }));
+            updateContinueWatching({
+              ...item,
+              coverImage: details.coverImage,
+              bannerImage: details.bannerImage || item.bannerImage
+            });
+          }
+        }).catch(() => {});
+      }
+    });
+  }, [items]);
+
   if (!items || items.length === 0) return null;
 
   return (
@@ -24,8 +73,8 @@ export default function ContinueWatchingRow({
       <div className="carousel-row">
         {items.map((item) => {
           const title = item.title?.english || item.title?.romaji || 'Anime';
-          const thumb = item.bannerImage || item.coverImage?.large || item.coverImage?.medium || null;
-          const fallbackThumb = 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600';
+          const thumb = getCoverUrl(item);
+          const hasFailed = failedImages[item.id];
           const progress = Math.max(5, Math.min(100, item.progressPercent || 0));
 
           return (
@@ -45,8 +94,33 @@ export default function ContinueWatchingRow({
               }}
             >
               <div className="continue-thumb-wrap">
-                <img src={thumb || fallbackThumb} alt="" className="continue-thumb" loading="eager" decoding="async" draggable={false}
-                  onError={(e) => { if (e.target.src !== fallbackThumb) e.target.src = fallbackThumb; }} />
+                {thumb && !hasFailed ? (
+                  <img
+                    src={thumb}
+                    alt={title}
+                    className="continue-thumb"
+                    loading="eager"
+                    decoding="async"
+                    draggable={false}
+                    onError={() => {
+                      setFailedImages(prev => ({ ...prev, [item.id]: true }));
+                      if (item.id && !fetchingRef.current.has(item.id)) {
+                        fetchingRef.current.add(item.id);
+                        getAnimeDetails(item.id).then(details => {
+                          if (details?.coverImage) {
+                            setResolvedCovers(prev => ({ ...prev, [item.id]: details.coverImage }));
+                            setFailedImages(prev => ({ ...prev, [item.id]: false }));
+                          }
+                        }).catch(() => {});
+                      }
+                    }}
+                  />
+                ) : (
+                  <div className="continue-thumb-fallback">
+                    <Tv size={24} color="var(--accent-color)" />
+                    <span className="continue-fallback-title">{title}</span>
+                  </div>
+                )}
                 <div className="card-quick-play">
                   <div className="card-quick-play-btn">
                     <Play size={18} fill="currentColor" style={{ marginLeft: '2px' }} />

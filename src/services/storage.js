@@ -51,10 +51,14 @@ export function getContinueWatchingList() {
 export function updateContinueWatching(item) {
   try {
     const list = getContinueWatchingList();
-    // remove existing item for this anime if exists
+    const existing = list.find(i => i.id === item.id);
     const filtered = list.filter(i => i.id !== item.id);
     const updated = {
+      ...existing,
       ...item,
+      // Retain or prioritize valid coverImage and bannerImage
+      coverImage: item.coverImage || existing?.coverImage,
+      bannerImage: item.bannerImage || existing?.bannerImage,
       updatedAt: Date.now(),
       progressPercent: item.duration > 0 ? Math.min(100, Math.round((item.currentTime / item.duration) * 100)) : 0
     };

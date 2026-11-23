@@ -237,13 +237,13 @@ export default function ZokoPlayer({
       id: currentAnime.id,
       idMal: currentAnime.idMal,
       title: currentAnime.title,
-      bannerImage: currentAnime.bannerImage,
-      coverImage: currentAnime.coverImage,
+      bannerImage: currentAnime.bannerImage || detailsData?.bannerImage,
+      coverImage: currentAnime.coverImage || detailsData?.coverImage,
       episode: currentEpisode,
       currentTime: Math.floor(pos),
       duration: Math.floor(dur)
     });
-  }, [currentAnime, currentEpisode, partyState?.active, partyState?.isHost, onProgressUpdate]);
+  }, [currentAnime, currentEpisode, detailsData, partyState?.active, partyState?.isHost, onProgressUpdate]);
 
   // Floating reactions listener
   useEffect(() => {
