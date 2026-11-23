@@ -155,15 +155,15 @@ export default function OtaUpdateModal({ updateInfo, onClose, onUpdateComplete }
         {/* Decorative Neon Top Accent */}
         <div className="ota-modal-header-accent" />
 
-        {/* Modal Header */}
+        {/* Pinned Modal Header */}
         <div className="ota-modal-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
             <div className="ota-modal-icon-badge">
               <Sparkles size={20} color="var(--accent-color)" />
             </div>
-            <div>
+            <div style={{ minWidth: 0 }}>
               <div className="ota-badge-pill">OVER-THE-AIR UPDATE</div>
-              <h2 id="ota-modal-title" className="ota-modal-title">
+              <h2 id="ota-modal-title" className="ota-modal-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {updateInfo.title || `OtakuPlay v${updateInfo.latestVersion}`}
               </h2>
             </div>
@@ -174,37 +174,39 @@ export default function OtaUpdateModal({ updateInfo, onClose, onUpdateComplete }
               className="icon-btn" 
               onClick={handleDismiss}
               aria-label="Close update dialog"
-              style={{ padding: '0.4rem' }}
+              style={{ padding: '0.4rem', flexShrink: 0 }}
             >
               <X size={20} />
             </button>
           )}
         </div>
 
-        {/* Version Difference Banner */}
-        <div className="ota-version-strip">
-          <div className="ota-ver-pill current">
-            <span className="label">Installed</span>
-            <span className="val">v{updateInfo.currentVersion}</span>
+        {/* Scrollable Containerized Content Body */}
+        <div className="ota-modal-body-scroll">
+          {/* Version Difference Banner */}
+          <div className="ota-version-strip">
+            <div className="ota-ver-pill current">
+              <span className="label">Installed</span>
+              <span className="val">v{updateInfo.currentVersion}</span>
+            </div>
+
+            <div className="ota-ver-arrow">
+              <ArrowRight size={16} />
+            </div>
+
+            <div className="ota-ver-pill latest">
+              <span className="label">New Version</span>
+              <span className="val">v{updateInfo.latestVersion}</span>
+            </div>
+
+            <div className="ota-size-badge" title="Download package size">
+              <HardDrive size={13} />
+              <span>{updateInfo.apkSize}</span>
+            </div>
           </div>
 
-          <div className="ota-ver-arrow">
-            <ArrowRight size={16} />
-          </div>
-
-          <div className="ota-ver-pill latest">
-            <span className="label">New Version</span>
-            <span className="val">v{updateInfo.latestVersion}</span>
-          </div>
-
-          <div className="ota-size-badge" title="Download package size">
-            <HardDrive size={13} />
-            <span>{updateInfo.apkSize}</span>
-          </div>
-        </div>
-
-        {/* Content Body based on Status */}
-        <div className="ota-modal-content">
+          {/* Content Body based on Status */}
+          <div className="ota-modal-content">
           {status === 'permission_prompt' && (
             <div className="ota-permission-box">
               <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
@@ -394,8 +396,9 @@ export default function OtaUpdateModal({ updateInfo, onClose, onUpdateComplete }
             </>
           )}
         </div>
+        </div>
 
-        {/* Footer info */}
+        {/* Pinned Footer info */}
         <div className="ota-modal-footer">
           <span>Automated OtakuPlay Release Pipeline</span>
           <a 

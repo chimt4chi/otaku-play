@@ -16,6 +16,7 @@ import {
   Users
 } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
+import { CURRENT_APP_VERSION } from '../services/otaService';
 
 const ACCENT_COLORS = [
   { name: 'Cyber Teal', value: '#35d5bf' },
@@ -38,6 +39,7 @@ export default function Navbar({
   downloadsCount = 0,
   updateInfo = null,
   onOpenUpdateModal = () => {},
+  onCheckUpdates = null,
   partyInfo = null,
   onOpenPartyModal = () => {}
 }) {
@@ -148,8 +150,8 @@ export default function Navbar({
 
         {/* Right Actions */}
         <div className="nav-actions">
-          {/* OTA Update Notification Pill */}
-          {updateInfo?.hasUpdate && (
+          {/* OTA Update Notification Pill or App Info & Updates */}
+          {updateInfo?.hasUpdate ? (
             <button 
               className="ota-nav-update-btn"
               onClick={onOpenUpdateModal}
@@ -157,6 +159,16 @@ export default function Navbar({
             >
               <Sparkles size={13} />
               <span>Update v{updateInfo.latestVersion}</span>
+            </button>
+          ) : (
+            <button
+              className="ota-nav-info-btn"
+              onClick={onCheckUpdates || onOpenUpdateModal}
+              title={`OtakuPlay v${CURRENT_APP_VERSION} (Check for updates)`}
+              aria-label="Check for updates"
+            >
+              <Sparkles size={13} />
+              <span className="ota-nav-info-text">v{CURRENT_APP_VERSION}</span>
             </button>
           )}
 
@@ -190,7 +202,7 @@ export default function Navbar({
               href="/assets/OtakuPlay.apk"
               download="OtakuPlay.apk"
               className="apk-nav-badge"
-              title="Download Dedicated Android App v1.0.0 (OtakuPlay.apk)"
+              title={`Download Dedicated Android App v${CURRENT_APP_VERSION} (OtakuPlay.apk)`}
               aria-label="Download Android App APK"
             >
               <Smartphone size={14} />

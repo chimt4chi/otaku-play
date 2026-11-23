@@ -19,7 +19,7 @@ import {
 import { App as CapApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { Smartphone } from 'lucide-react';
-import { checkForAppUpdate } from './services/otaService';
+import { checkForAppUpdate, CURRENT_APP_VERSION } from './services/otaService';
 import { watchPartyService } from './services/watchPartyService';
 import { getAnimeDetails } from './services/api';
 
@@ -202,7 +202,7 @@ export default function App() {
         setUpdateInfo(result);
         setIsUpdateModalOpen(true);
       } else {
-        alert(`You're already using the latest version of OtakuPlay (v${result?.currentVersion || '1.0.0'})!`);
+        alert(`You're already using the latest version of OtakuPlay (v${result?.currentVersion || CURRENT_APP_VERSION})!`);
       }
     } catch (err) {
       alert('Could not check updates. Please check your internet connection.');
@@ -371,6 +371,7 @@ export default function App() {
         downloadsCount={downloads.length}
         updateInfo={updateInfo}
         onOpenUpdateModal={() => setIsUpdateModalOpen(true)}
+        onCheckUpdates={handleCheckForUpdates}
         partyInfo={{
           active: partyState.active,
           roomCode: partyState.roomCode,
@@ -453,10 +454,6 @@ export default function App() {
             onRemoveDownload={handleRemoveDownload}
             onClearAllDownloads={handleClearAllDownloads}
             onBrowseAnime={() => setCurrentView('home')}
-            updateInfo={updateInfo}
-            onCheckUpdates={handleCheckForUpdates}
-            onOpenUpdateModal={() => setIsUpdateModalOpen(true)}
-            checkingUpdate={checkingUpdate}
           />
         )}
         </Suspense>
@@ -474,6 +471,7 @@ export default function App() {
           membersCount: partyState.members.length
         }}
         onOpenPartyModal={() => setIsWatchPartyModalOpen(true)}
+        onOpenSearch={() => setIsSearchOpen(true)}
       />
 
       <Suspense fallback={null}>

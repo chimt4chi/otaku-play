@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Users, X, Copy, Check, Sparkles, Play, LogIn, Crown, Radio, ArrowRight, ShieldCheck } from 'lucide-react';
 import { PARTY_COLORS, cleanRoomCode } from '../services/watchPartyService';
+import { CURRENT_APP_VERSION } from '../services/otaService';
 
 export default function WatchPartyModal({
   isOpen,
@@ -302,7 +303,7 @@ export default function WatchPartyModal({
             <ShieldCheck size={14} color="var(--accent-color)" />
             <span>P2P Encrypted • No Account Needed</span>
           </div>
-          <span style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>v1.0.0</span>
+          <span style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>v{CURRENT_APP_VERSION}</span>
         </div>
       </div>
     </div>

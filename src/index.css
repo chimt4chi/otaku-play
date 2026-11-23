@@ -3440,20 +3440,26 @@ body:has(.search-modal-backdrop) {
    OTA (Over-The-Air) Update System Styling
    ========================================================================== */
 
+/* Body scroll lock when OTA modal is open */
+body:has(.ota-modal-backdrop) {
+  overflow: hidden;
+}
+
 .ota-modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(5, 7, 13, 0.82);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(5, 7, 13, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  padding-top: calc(1rem + var(--sat));
-  padding-bottom: calc(1rem + var(--sab));
-  animation: otaFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  padding-top: max(1rem, var(--sat, 0px));
+  padding-bottom: max(1rem, var(--sab, 0px));
+  animation: otaFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
 }
 
 @keyframes otaFadeIn {
@@ -3463,24 +3469,23 @@ body:has(.search-modal-backdrop) {
 
 .ota-modal-card {
   position: relative;
-  width: 100%;
-  max-width: 520px;
-  /* Prevent card from overflowing small phone screens */
-  max-height: calc(100dvh - 2rem - var(--sat, 0px) - var(--sab, 0px));
+  width: min(520px, 100%);
+  max-height: min(88vh, 88dvh);
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-xl);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 30px var(--accent-glow);
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  animation: otaSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  animation: otaSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
 }
 
 @keyframes otaSlideUp {
   from {
     opacity: 0;
-    transform: translateY(24px) scale(0.97);
+    transform: translateY(20px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -3494,6 +3499,7 @@ body:has(.search-modal-backdrop) {
   background: linear-gradient(90deg, var(--accent-color), #a78bfa, var(--accent-color));
   background-size: 200% 100%;
   animation: otaGradientFlow 3s ease infinite;
+  flex-shrink: 0;
 }
 
 @keyframes otaGradientFlow {
@@ -3503,50 +3509,76 @@ body:has(.search-modal-backdrop) {
 }
 
 .ota-modal-header {
-  padding: 1.25rem 1.5rem 1rem;
+  padding: 1rem 1.25rem 0.85rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-.ota-modal-icon-badge {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-md);
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-glow);
+.ota-modal-body-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 1rem 1.25rem;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 15px var(--accent-glow);
-}
-
-.ota-badge-pill {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  color: var(--accent-color);
-  text-transform: uppercase;
-}
-
-.ota-modal-title {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--text-main);
-  margin-top: 0.15rem;
-  line-height: 1.25;
+  flex-direction: column;
+  gap: 0.85rem;
+  box-sizing: border-box;
 }
 
 .ota-version-strip {
-  margin: 0 1.5rem 1rem;
-  padding: 0.75rem 1rem;
+  margin: 0;
+  padding: 0.65rem 0.85rem;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.6rem;
+  box-sizing: border-box;
+}
+
+@media (max-width: 520px) {
+  .ota-modal-backdrop {
+    padding: 0.5rem;
+    align-items: flex-end;
+  }
+
+  .ota-modal-card {
+    max-height: 90vh;
+    max-height: 90dvh;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .ota-version-strip {
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0.45rem;
+    padding: 0.55rem 0.75rem;
+  }
+
+  .ota-size-badge {
+    grid-column: 1 / -1;
+    justify-self: center;
+    margin-top: 0.2rem;
+  }
+
+  .ota-modal-header {
+    padding: 0.85rem 1rem;
+  }
+
+  .ota-modal-body-scroll {
+    padding: 0.75rem 1rem;
+  }
+
+  .ota-modal-footer {
+    padding: 0.7rem 1rem;
+  }
 }
 
 .ota-ver-pill {
@@ -3709,6 +3741,37 @@ body:has(.search-modal-backdrop) {
 }
 
 /* Update Banner Pill in Navbar */
+.ota-nav-info-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-card);
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-mono);
+}
+
+.ota-nav-info-btn:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 480px) {
+  .ota-nav-info-text {
+    display: none;
+  }
+  .ota-nav-info-btn {
+    padding: 0.4rem;
+  }
+}
+
 .ota-nav-update-btn {
   display: inline-flex;
   align-items: center;

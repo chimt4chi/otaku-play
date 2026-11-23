@@ -1,12 +1,12 @@
 import React from 'react';
-import { Tv, Compass, Flame, Bookmark, Download, Users } from 'lucide-react';
+import { Tv, Search, Bookmark, Download, Users } from 'lucide-react';
 
 const TABS = [
   { view: 'home', label: 'Home', icon: Tv },
-  { view: 'genres', label: 'Browse', icon: Compass, alsoActiveFor: ['popular', 'top'] },
+  { view: 'search', label: 'Search', icon: Search, isSearch: true },
   { view: 'party', label: 'Party', icon: Users, isParty: true },
-  { view: 'downloads', label: 'Offline', icon: Download, badge: 'downloads' },
-  { view: 'watchlist', label: 'Saved', icon: Bookmark, badge: 'watchlist' }
+  { view: 'watchlist', label: 'Saved', icon: Bookmark, badge: 'watchlist' },
+  { view: 'downloads', label: 'Offline', icon: Download, badge: 'downloads' }
 ];
 
 export default function MobileBottomNav({
@@ -15,16 +15,17 @@ export default function MobileBottomNav({
   watchlistCount = 0,
   downloadsCount = 0,
   partyInfo = null,
-  onOpenPartyModal = () => {}
+  onOpenPartyModal = () => {},
+  onOpenSearch = () => {}
 }) {
   const counts = { watchlist: watchlistCount, downloads: downloadsCount };
 
   return (
     <nav className="mobile-bottom-nav" aria-label="Mobile Navigation">
-      {TABS.map(({ view, label, icon: Icon, badge, alsoActiveFor = [], isParty }) => {
+      {TABS.map(({ view, label, icon: Icon, badge, alsoActiveFor = [], isParty, isSearch }) => {
         const isActive = isParty
           ? Boolean(partyInfo?.active)
-          : (currentView === view || alsoActiveFor.includes(currentView));
+          : (!isSearch && (currentView === view || alsoActiveFor.includes(currentView)));
         const count = badge ? counts[badge] : (isParty && partyInfo?.active ? partyInfo.membersCount : 0);
 
         return (
@@ -33,7 +34,9 @@ export default function MobileBottomNav({
             type="button"
             className={`mobile-nav-btn ${isActive ? 'active' : ''} ${isParty ? 'party-tab-btn' : ''}`}
             onClick={() => {
-              if (isParty) {
+              if (isSearch) {
+                onOpenSearch();
+              } else if (isParty) {
                 onOpenPartyModal();
               } else {
                 setCurrentView(view);

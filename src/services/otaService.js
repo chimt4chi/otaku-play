@@ -1,11 +1,13 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
+import packageJson from '../../package.json';
 
-// Register the custom native OTA Android plugin
+// Register the custom native OTA Android plugin (safe fallback if not native)
 const OtaUpdater = registerPlugin('OtaUpdater');
 
+export const CURRENT_APP_VERSION = packageJson.version || '1.2.5';
 export const GITHUB_REPO = 'chimt4chi/otaku-play';
-export const FALLBACK_VERSION = '1.0.0';
+export const FALLBACK_VERSION = CURRENT_APP_VERSION;
 
 const STORAGE_KEYS = {
   LAST_CHECK: 'otaku_ota_last_check',
@@ -43,33 +45,28 @@ export function compareVersions(v1, v2) {
  */
 export async function getCurrentAppInfo() {
   const isNative = Capacitor.isNativePlatform();
-  let versionName = FALLBACK_VERSION;
-  let versionCode = 1;
+  let versionName = CURRENT_APP_VERSION;
+  let versionCode = 7;
   let packageName = 'com.otakuplay.app';
   let canInstallUnknownApps = true;
 
   if (isNative) {
     try {
-      const nativeInfo = await OtaUpdater.getAppInfo();
-      if (nativeInfo?.versionName) {
-        versionName = nativeInfo.versionName;
+      const info = await CapApp.getInfo();
+      if (info?.version) {
+        versionName = info.version;
       }
-      if (nativeInfo?.versionCode) {
-        versionCode = nativeInfo.versionCode;
+      if (info?.build) {
+        const parsed = parseInt(info.build, 10);
+        if (!isNaN(parsed) && parsed > 0) {
+          versionCode = parsed;
+        }
       }
-      if (nativeInfo?.packageName) {
-        packageName = nativeInfo.packageName;
+      if (info?.id) {
+        packageName = info.id;
       }
-      canInstallUnknownApps = nativeInfo?.canInstallUnknownApps ?? true;
-    } catch {
-      // Fallback to official @capacitor/app plugin
-      try {
-        const info = await CapApp.getInfo();
-        versionName = info.version || FALLBACK_VERSION;
-        versionCode = parseInt(info.build, 10) || 1;
-      } catch (err) {
-        console.warn('Could not read native app version:', err);
-      }
+    } catch (err) {
+      console.warn('Could not read native app version:', err);
     }
   }
 
