@@ -62,6 +62,9 @@ jobs:
       - name: Compile Android APK with Gradle
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
+          OTAKU_KEYSTORE_PASSWORD: ${{ secrets.OTAKU_KEYSTORE_PASSWORD }}
+          OTAKU_KEY_ALIAS: ${{ secrets.OTAKU_KEY_ALIAS }}
+          OTAKU_KEY_PASSWORD: ${{ secrets.OTAKU_KEY_PASSWORD }}
         run: |
           cd android
           ./gradlew assembleRelease --no-daemon

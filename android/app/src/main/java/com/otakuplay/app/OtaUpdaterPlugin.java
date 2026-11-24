@@ -3,6 +3,9 @@ package com.otakuplay.app;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.content.pm.SigningInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -21,6 +24,9 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,6 +36,8 @@ public class OtaUpdaterPlugin extends Plugin {
 
     private static final String TAG = "OtaUpdater";
     private static final String UPDATE_FILE_NAME = "OtakuPlay-update.apk";
+    // Updates may only be fetched from this project's GitHub releases
+    private static final String RELEASE_PATH_PREFIX = "/chimt4chi/otaku-play/releases/download/";
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final AtomicBoolean isCancelled = new AtomicBoolean(false);
@@ -104,6 +112,7 @@ public class OtaUpdaterPlugin extends Plugin {
         }
 
         try {
+            verifyApk(apkFile);
             launchInstaller(apkFile);
             JSObject ret = new JSObject();
             ret.put("success", true);
@@ -122,6 +131,21 @@ public class OtaUpdaterPlugin extends Plugin {
             call.reject("Download URL is required");
             return;
         }
+
+        try {
+            URL parsed = new URL(downloadUrl);
+            String h = parsed.getHost() == null ? "" : parsed.getHost().toLowerCase(Locale.ROOT);
+            if (!"https".equals(parsed.getProtocol()) || !h.equals("github.com")
+                || parsed.getPath() == null || !parsed.getPath().startsWith(RELEASE_PATH_PREFIX)) {
+                call.reject("Update URL is not an official OtakuPlay release");
+                return;
+            }
+        } catch (Exception e) {
+            call.reject("Invalid update URL");
+            return;
+        }
+
+        final String expectedSha256 = normalizeSha256(call.getString("sha256"));
 
         if (isDownloading.get()) {
             call.reject("A download is already in progress.");
@@ -157,6 +181,7 @@ public class OtaUpdaterPlugin extends Plugin {
                     throw new Exception("Server responded with HTTP " + responseCode);
                 }
 
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
                 long totalBytes = connection.getContentLengthLong();
                 inputStream = connection.getInputStream();
                 outputStream = new FileOutputStream(tempFile);
@@ -173,6 +198,7 @@ public class OtaUpdaterPlugin extends Plugin {
                     }
 
                     outputStream.write(buffer, 0, read);
+                    digest.update(buffer, 0, read);
                     downloadedBytes += read;
 
                     long now = System.currentTimeMillis();
@@ -196,6 +222,11 @@ public class OtaUpdaterPlugin extends Plugin {
                 outputStream.flush();
                 outputStream.close();
                 outputStream = null;
+
+                if (expectedSha256 != null && !expectedSha256.equals(toHex(digest.digest()))) {
+                    throw new Exception("Checksum mismatch - download rejected");
+                }
+                verifyApk(tempFile);
 
                 if (apkFile.exists()) {
                     apkFile.delete();
@@ -259,6 +290,52 @@ public class OtaUpdaterPlugin extends Plugin {
         });
     }
 
+    private static String normalizeSha256(String raw) {
+        if (raw == null) return null;
+        String v = raw.trim().toLowerCase(Locale.ROOT);
+        if (v.startsWith("sha256:")) v = v.substring(7);
+        return v.matches("[0-9a-f]{64}") ? v : null;
+    }
+
+    private static String toHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes) sb.append(String.format("%02x", b));
+        return sb.toString();
+    }
+
+    /**
+     * Rejects any APK that is not this app signed with the same certificate as the
+     * installed build, before handing the file to the system installer.
+     */
+    @SuppressWarnings("deprecation")
+    private void verifyApk(File apk) throws Exception {
+        Context context = getContext();
+        PackageManager pm = context.getPackageManager();
+        boolean modern = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P;
+        int flags = modern ? PackageManager.GET_SIGNING_CERTIFICATES : PackageManager.GET_SIGNATURES;
+
+        PackageInfo archive = pm.getPackageArchiveInfo(apk.getAbsolutePath(), flags);
+        if (archive == null) throw new Exception("Downloaded file is not a valid APK");
+        if (!context.getPackageName().equals(archive.packageName)) {
+            throw new Exception("Downloaded APK is for a different app");
+        }
+
+        PackageInfo installed = pm.getPackageInfo(context.getPackageName(), flags);
+        Signature[] a = signaturesOf(archive, modern);
+        Signature[] b = signaturesOf(installed, modern);
+        if (a == null || b == null || a.length == 0 || !Arrays.equals(a, b)) {
+            throw new Exception("Downloaded APK signature does not match the installed app");
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private static Signature[] signaturesOf(PackageInfo info, boolean modern) {
+        if (!modern) return info.signatures;
+        SigningInfo si = info.signingInfo;
+        if (si == null) return null;
+        return si.hasMultipleSigners() ? si.getApkContentsSigners() : si.getSigningCertificateHistory();
+    }
+
     private void launchInstaller(File apkFile) throws Exception {
         Context context = getContext();
         Uri apkUri = FileProvider.getUriForFile(
@@ -300,10 +377,10 @@ public class OtaUpdaterPlugin extends Plugin {
         host = host.toLowerCase();
         // Allow app internal host, legitimate video origins, and intentional GitHub release links
         if (host.equals("localhost") ||
-            (host.equals("github.com") && url.getPath() != null && url.getPath().contains("otaku-play")) ||
-            host.contains("zokoanime.video") ||
-            host.contains("anilist.co") ||
-            host.contains("consumet.org")) {
+            (host.equals("github.com") && url.getPath() != null && url.getPath().startsWith("/chimt4chi/otaku-play")) ||
+            host.equals("zokoanime.video") || host.endsWith(".zokoanime.video") ||
+            host.equals("anilist.co") || host.endsWith(".anilist.co") ||
+            host.equals("consumet.org") || host.endsWith(".consumet.org")) {
             return null; // Allow standard handling
         }
 
@@ -347,6 +424,13 @@ public class OtaUpdaterPlugin extends Plugin {
                 if (!redirectUrl.startsWith("http://") && !redirectUrl.startsWith("https://")) {
                     URL base = new URL(currentUrl);
                     redirectUrl = new URL(base, redirectUrl).toExternalForm();
+                }
+
+                URL next = new URL(redirectUrl);
+                String nh = next.getHost() == null ? "" : next.getHost().toLowerCase(Locale.ROOT);
+                if (!"https".equals(next.getProtocol())
+                    || !(nh.equals("github.com") || nh.endsWith(".githubusercontent.com"))) {
+                    throw new Exception("Update redirected to an untrusted location");
                 }
 
                 currentUrl = redirectUrl;

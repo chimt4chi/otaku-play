@@ -166,6 +166,7 @@ export async function checkForAppUpdate(force = false) {
       changelog: release.body || 'New performance improvements, streaming optimizations, and bug fixes.',
       publishedAt: release.published_at,
       downloadUrl,
+      sha256: apkAsset?.digest || null,
       apkSize: apkAsset?.size ? formatBytes(apkAsset.size) : '~15 MB',
       assetName: apkAsset?.name || `OtakuPlay-${latestTag}.apk`,
       releaseUrl: release.html_url,
@@ -220,7 +221,7 @@ export async function openInstallSettings() {
  * @param {string} url - Direct APK download URL
  * @param {function} onProgress - Callback for progress events
  */
-export async function startDownloadAndInstall(url, onProgress) {
+export async function startDownloadAndInstall(url, onProgress, sha256 = null) {
   if (!Capacitor.isNativePlatform()) {
     // In web browser: trigger standard browser download
     const anchor = document.createElement('a');
@@ -249,7 +250,7 @@ export async function startDownloadAndInstall(url, onProgress) {
       });
     });
 
-    const result = await OtaUpdater.downloadAndInstall({ url });
+    const result = await OtaUpdater.downloadAndInstall({ url, sha256 });
     return result;
   } finally {
     if (progressListener) {

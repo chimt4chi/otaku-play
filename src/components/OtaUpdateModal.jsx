@@ -80,7 +80,7 @@ export default function OtaUpdateModal({ updateInfo, onClose, onUpdateComplete }
           setStatus('error');
           setErrorMessage(event.error || 'Failed to download update package');
         }
-      });
+      }, updateInfo.sha256);
     } catch (err) {
       if (status !== 'idle') {
         setStatus('error');
