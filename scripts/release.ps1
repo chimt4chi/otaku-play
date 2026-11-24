@@ -47,7 +47,7 @@ npm run build:apk
 
 # 4. Git Commit & Tag
 Write-Host "==> Creating Git Commit and Tag $tag..."
-git add package.json android/app/build.gradle OtakuPlay.apk public/assets/OtakuPlay.apk
+git add package.json package-lock.json android/app/build.gradle public/assets/OtakuPlay.apk
 git commit -m "chore(release): $tag"
 git tag -a $tag -m "Release $tag"
 
