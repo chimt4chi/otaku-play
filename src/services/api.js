@@ -2,42 +2,130 @@
 
 const ANILIST_URL = 'https://graphql.anilist.co';
 
-// In-memory cache for fast snappy UX
-const cache = new Map();
+// ---- Response cache -------------------------------------------------------------------
+// Layer 1: in-memory (instant). Layer 2: localStorage (survives restarts, so a cold start
+// with no network still shows real content). Entries are fresh for FRESH_MS; past that we
+// try the network, and only fall back to the stale copy (up to STALE_MS) if that fails.
+const FRESH_MS = 10 * 60 * 1000;
+const STALE_MS = 7 * 24 * 60 * 60 * 1000;
+const STORE_KEY = 'otaku_api_cache_v1';
+const MAX_PERSISTED = 30;
+const REQUEST_TIMEOUT_MS = 12000;
 
-async function fetchGraphQL(query, variables = {}) {
-  const cacheKey = JSON.stringify({ query, variables });
-  if (cache.has(cacheKey)) {
-    return cache.get(cacheKey);
-  }
+const memory = new Map(); // key -> { t, d }
+const inflight = new Map(); // key -> Promise
+let persisted = null; // lazily loaded { key: { t, d } }
 
+function hashKey(str) {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36) + str.length.toString(36);
+}
+
+function loadPersisted() {
+  if (persisted) return persisted;
   try {
-    const response = await fetch(ANILIST_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({ query, variables }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`AniList HTTP error: ${response.status}`);
-    }
-
-    const json = await response.json();
-    if (json.errors && json.errors.length > 0) {
-      console.warn('AniList GraphQL warning:', json.errors);
-      throw new Error(json.errors[0].message);
-    }
-
-    // Cache successful queries for 10 minutes
-    cache.set(cacheKey, json.data);
-    return json.data;
-  } catch (error) {
-    console.error('Fetch error from AniList:', error);
-    throw error;
+    persisted = JSON.parse(localStorage.getItem(STORE_KEY) || '{}') || {};
+  } catch {
+    persisted = {};
   }
+  return persisted;
+}
+
+function savePersisted(key, entry) {
+  const store = loadPersisted();
+  store[key] = entry;
+  const keys = Object.keys(store);
+  if (keys.length > MAX_PERSISTED) {
+    keys.sort((a, b) => store[a].t - store[b].t);
+    keys.slice(0, keys.length - MAX_PERSISTED).forEach(k => delete store[k]);
+  }
+  // Quota errors: drop the oldest half and retry once, otherwise give up silently
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(store));
+      return;
+    } catch {
+      const sorted = Object.keys(store).sort((a, b) => store[a].t - store[b].t);
+      sorted.slice(0, Math.ceil(sorted.length / 2)).forEach(k => delete store[k]);
+    }
+  }
+}
+
+function readCache(key) {
+  const mem = memory.get(key);
+  if (mem) return mem;
+  const disk = loadPersisted()[key];
+  if (disk) {
+    memory.set(key, disk);
+    return disk;
+  }
+  return null;
+}
+
+async function requestAniList(query, variables) {
+  const MAX_ATTEMPTS = 3;
+  for (let attempt = 1; ; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+      const response = await fetch(ANILIST_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ query, variables }),
+        signal: controller.signal,
+      });
+
+      // AniList rate limit (90/min): wait as instructed, then retry
+      if (response.status === 429 && attempt < MAX_ATTEMPTS) {
+        const retryAfter = parseInt(response.headers.get('Retry-After') || '2', 10);
+        await new Promise(r => setTimeout(r, Math.min(Math.max(retryAfter, 1), 8) * 1000));
+        continue;
+      }
+      if (!response.ok) throw new Error(`AniList HTTP error: ${response.status}`);
+
+      const json = await response.json();
+      if (json.errors && json.errors.length > 0) {
+        console.warn('AniList GraphQL warning:', json.errors);
+        throw new Error(json.errors[0].message);
+      }
+      return json.data;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+}
+
+async function fetchGraphQL(query, variables = {}, { persist = true } = {}) {
+  const key = hashKey(JSON.stringify({ query, variables }));
+  const now = Date.now();
+
+  const cached = readCache(key);
+  if (cached && now - cached.t < FRESH_MS) return cached.d;
+
+  // Several components often ask for the same thing at once: share one request
+  if (inflight.has(key)) return inflight.get(key);
+
+  const promise = requestAniList(query, variables)
+    .then((data) => {
+      const entry = { t: Date.now(), d: data };
+      memory.set(key, entry);
+      if (persist) savePersisted(key, entry);
+      return data;
+    })
+    .catch((error) => {
+      // Offline / AniList down: a stale copy beats an error screen
+      if (cached && now - cached.t < STALE_MS) {
+        console.warn('Using stale cached response:', error.message);
+        return cached.d;
+      }
+      console.error('Fetch error from AniList:', error);
+      throw error;
+    })
+    .finally(() => inflight.delete(key));
+
+  inflight.set(key, promise);
+  return promise;
 }
 
 const MEDIA_FIELDS = `
@@ -576,7 +664,7 @@ export async function searchAnime(search, page = 1, perPage = 25, genre = null, 
   if (genre && genre !== 'All') variables.genre = genre;
 
   try {
-    const data = await fetchGraphQL(query, variables);
+    const data = await fetchGraphQL(query, variables, { persist: false });
     return groupMediaIntoFranchises(data.Page.media);
   } catch (err) {
     let results = [...FALLBACK_TRENDING, ...FALLBACK_POPULAR];

@@ -1,5 +1,28 @@
 /* OTAKU STREAM - Modern Anime Cyberpunk Theme & Core Design System */
 
+/* Self-hosted variable fonts (latin subset) - no network request, works offline */
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./assets/fonts/outfit-latin-wght-normal.woff2') format('woff2-variations');
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('./assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2') format('woff2-variations');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url('./assets/fonts/jetbrains-mono-latin-wght-normal.woff2') format('woff2-variations');
+}
+
 :root {
   --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -91,6 +114,7 @@ body {
   background-color: var(--bg-main);
   color: var(--text-main);
   min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -923,6 +947,7 @@ button {
   width: 100%;
   aspect-ratio: 16 / 9;
   max-height: min(calc(100vh - 190px), 640px);
+  max-height: min(calc(100dvh - 190px), 640px);
   background: #000;
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -932,6 +957,7 @@ button {
 
 .theater-mode .video-frame-container {
   max-height: min(calc(100vh - 150px), 760px);
+  max-height: min(calc(100dvh - 150px), 760px);
 }
 
 .video-frame-container iframe {
@@ -1167,6 +1193,7 @@ button {
   position: sticky;
   top: 76px;
   max-height: calc(100vh - 90px);
+  max-height: calc(100dvh - 90px);
   display: flex;
   flex-direction: column;
 }
@@ -1180,6 +1207,7 @@ button {
   flex-direction: column;
   gap: 0.75rem;
   max-height: calc(100vh - 90px);
+  max-height: calc(100dvh - 90px);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
@@ -4380,4 +4408,34 @@ body:has(.ota-modal-backdrop) {
   border: none;
   border-radius: 0;
   box-shadow: none;
+}
+
+/* Offline notice */
+.offline-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--sab, 0px) + 76px);
+  z-index: 9000;
+  margin: 0 auto;
+  width: fit-content;
+  max-width: calc(100vw - 1.5rem);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.14);
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  color: #fbbf24;
+  font-size: 0.75rem;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+@media (min-width: 769px) {
+  .offline-banner {
+    bottom: 1rem;
+  }
 }

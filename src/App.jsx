@@ -24,6 +24,7 @@ import { checkForAppUpdate, CURRENT_APP_VERSION } from './services/otaService';
 import { watchPartyService } from './services/watchPartyService';
 import { getAnimeDetails } from './services/api';
 import { handleBackPress, useBackHandler } from './services/backStack';
+import OfflineBanner from './components/OfflineBanner';
 
 // Everything except the home screen is split out of the initial bundle
 const GenresView = lazy(() => import('./views/GenresView'));
@@ -380,6 +381,7 @@ export default function App() {
 
   return (
     <div className={`app-container view-${currentView}`}>
+      <OfflineBanner />
       {/* Global Navigation Bar */}
       <Navbar
         currentView={currentView}
