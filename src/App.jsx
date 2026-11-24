@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import Navbar from './components/Navbar';
 import MobileBottomNav from './components/MobileBottomNav';
 import HomeView from './views/HomeView';
@@ -22,6 +22,7 @@ import { Smartphone } from 'lucide-react';
 import { checkForAppUpdate, CURRENT_APP_VERSION } from './services/otaService';
 import { watchPartyService } from './services/watchPartyService';
 import { getAnimeDetails } from './services/api';
+import { handleBackPress, useBackHandler } from './services/backStack';
 
 // Everything except the home screen is split out of the initial bundle
 const GenresView = lazy(() => import('./views/GenresView'));
@@ -225,6 +226,21 @@ export default function App() {
     savePlayerConfig({ accentColor: playerConfig.accentColor });
   }, [playerConfig.accentColor]);
 
+  // Remember where the player was opened from so Back returns there
+  const viewBeforePlayerRef = useRef('home');
+  const previousViewRef = useRef('home');
+  useEffect(() => {
+    if (currentView === 'player' && previousViewRef.current !== 'player') {
+      viewBeforePlayerRef.current = previousViewRef.current;
+    }
+    previousViewRef.current = currentView;
+  }, [currentView]);
+
+  useBackHandler(isSearchOpen, () => setIsSearchOpen(false));
+  useBackHandler(Boolean(detailAnime), () => setDetailAnime(null));
+  useBackHandler(isUpdateModalOpen && Boolean(updateInfo), () => setIsUpdateModalOpen(false));
+  useBackHandler(isWatchPartyModalOpen, () => setIsWatchPartyModalOpen(false));
+
   // Hardware Back Button handling for Dedicated Android App
   useEffect(() => {
     let removeListener = null;
@@ -232,12 +248,10 @@ export default function App() {
     const initBackButton = async () => {
       try {
         const handle = await CapApp.addListener('backButton', () => {
-          if (isSearchOpen) {
-            setIsSearchOpen(false);
-          } else if (detailAnime) {
-            setDetailAnime(null);
-          } else if (currentView === 'player') {
-            setCurrentView('home');
+          // Overlays register themselves (modals, drawers, fullscreen): topmost closes first
+          if (handleBackPress()) return;
+          if (currentView === 'player') {
+            setCurrentView(viewBeforePlayerRef.current || 'home');
           } else if (currentView !== 'home') {
             setCurrentView('home');
           } else {
@@ -255,7 +269,7 @@ export default function App() {
     return () => {
       if (removeListener) removeListener();
     };
-  }, [isSearchOpen, detailAnime, currentView]);
+  }, [currentView]);
 
   // Always start a new screen at the top
   useEffect(() => {

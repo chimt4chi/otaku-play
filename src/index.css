@@ -4364,3 +4364,20 @@ body:has(.ota-modal-backdrop) {
     padding-bottom: max(0.6rem, calc(var(--sab) + 0.4rem));
   }
 }
+
+
+/* Native app fullscreen: the WebView discards element fullscreen, so the player is a fixed overlay */
+.video-frame-container.native-fs {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  aspect-ratio: auto;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}

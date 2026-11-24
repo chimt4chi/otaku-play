@@ -34,6 +34,8 @@ import { watchPartyService } from '../services/watchPartyService';
 import AnimeCard from './AnimeCard';
 import DownloadModal from './DownloadModal';
 import WatchPartyDrawer from './WatchPartyDrawer';
+import { setNativeFullscreen, setKeepAwake, isNativeApp } from '../services/nativePlayer';
+import { useBackHandler } from '../services/backStack';
 
 // Helper for vendor-prefixed fullscreen checks
 const isFullscreenElement = (element) => {
@@ -103,6 +105,7 @@ export default function ZokoPlayer({
   const [detailsData, setDetailsData] = useState(anime);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDownloadOpen, setIsDownloadOpen] = useState(false);
+  const isNativeFullscreenRef = useRef(false);
   const [floatingReactions, setFloatingReactions] = useState([]);
 
   const containerRef = useRef(null);
@@ -214,6 +217,15 @@ export default function ZokoPlayer({
       // Cross-origin safe guard
     }
   }, []);
+
+  // Native app: the WebView discards element fullscreen, so fullscreen is a fixed overlay
+  // (class native-fs) plus native immersive mode / landscape lock. On the web the real
+  // Fullscreen API is used and the fullscreenchange listener keeps state in sync.
+  const changeNativeFullscreen = useCallback((enter) => {
+    setIsFullscreen(enter);
+    setNativeFullscreen(enter);
+    sendPlayerMessage({ type: 'fullscreen', active: enter });
+  }, [sendPlayerMessage]);
 
   // Throttled progress reporting (Fix: battery drain and micro-stuttering)
   const reportProgress = useCallback((pos, dur, force = false) => {
@@ -382,9 +394,13 @@ export default function ZokoPlayer({
         case 'ready':
           setPlayerLoading(false);
           if (containerRef.current) {
-            const isFull = isFullscreenElement(containerRef.current);
-            setIsFullscreen(isFull);
-            sendPlayerMessage({ type: 'fullscreen', active: isFull });
+            if (isNativeApp) {
+              sendPlayerMessage({ type: 'fullscreen', active: isNativeFullscreenRef.current });
+            } else {
+              const isFull = isFullscreenElement(containerRef.current);
+              setIsFullscreen(isFull);
+              sendPlayerMessage({ type: 'fullscreen', active: isFull });
+            }
           }
           break;
 
@@ -421,7 +437,10 @@ export default function ZokoPlayer({
           break;
 
         case 'fullscreen':
-          if (containerRef.current) {
+          if (isNativeApp) {
+            if (msg.request === 'enter') changeNativeFullscreen(true);
+            else if (msg.request === 'exit') changeNativeFullscreen(false);
+          } else if (containerRef.current) {
             if (msg.request === 'enter') {
               requestElemFullscreen(containerRef.current).then(() => {
                 setIsFullscreen(true);
@@ -472,7 +491,25 @@ export default function ZokoPlayer({
         reportProgress(currentTimeRef.current, durationRef.current, true);
       }
     };
-  }, [currentAnime, currentEpisode, totalEpisodes, autoNext, reportProgress, getNextSeason, triggerAutoNextCountdown, sendPlayerMessage, showToast]);
+  }, [currentAnime, currentEpisode, totalEpisodes, autoNext, reportProgress, getNextSeason, triggerAutoNextCountdown, sendPlayerMessage, showToast, changeNativeFullscreen]);
+
+  useEffect(() => {
+    isNativeFullscreenRef.current = isNativeApp && isFullscreen;
+  }, [isFullscreen]);
+
+  // Keep the screen on while watching; always restore system bars and orientation on exit
+  useEffect(() => {
+    setKeepAwake(true);
+    return () => {
+      setKeepAwake(false);
+      setNativeFullscreen(false);
+    };
+  }, []);
+
+  // Android back button: close the topmost overlay first (fullscreen, then download / party)
+  useBackHandler(isNativeApp && isFullscreen, () => changeNativeFullscreen(false));
+  useBackHandler(isDownloadOpen, () => setIsDownloadOpen(false));
+  useBackHandler(Boolean(partyState?.active && isPartyDrawerOpen), () => setIsPartyDrawerOpen(false));
 
   const broadcastHostEpisode = (targetAnime, ep) => {
     if (partyState?.active && partyState.isHost) {
@@ -591,6 +628,10 @@ export default function ZokoPlayer({
   };
 
   const handleToggleFullscreen = () => {
+    if (isNativeApp) {
+      changeNativeFullscreen(!isNativeFullscreenRef.current);
+      return;
+    }
     if (containerRef.current) {
       if (!isFullscreenElement(containerRef.current)) {
         requestElemFullscreen(containerRef.current).catch(() => { });
@@ -720,7 +761,7 @@ export default function ZokoPlayer({
         </div>
 
         {/* Video Player Frame Container */}
-        <div className="video-frame-container" ref={containerRef} id="player-wrap">
+        <div className={`video-frame-container ${isNativeApp && isFullscreen ? 'native-fs' : ''}`} ref={containerRef} id="player-wrap">
           {/* Floating Emoji Reactions Overlay */}
           {floatingReactions.length > 0 && (
             <div className="party-floating-reactions-overlay">
