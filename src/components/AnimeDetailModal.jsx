@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Play, Star, Bookmark, Calendar, Film, Layers, UserCheck, Download } from 'lucide-react';
+import { X, Play, Star, Bookmark, Calendar, Film, Layers, UserCheck, ListPlus } from 'lucide-react';
 import { getAnimeDetails, resolveEpisodeCount } from '../services/api';
 import AnimeCard from './AnimeCard';
 import DownloadModal from './DownloadModal';
@@ -120,11 +120,11 @@ export default function AnimeDetailModal({
                 <button
                   className="btn-secondary"
                   onClick={() => setIsDownloadOpen(true)}
-                  title="Download episode offline"
-                  aria-label="Download episode offline"
+                  title="Save episode"
+                  aria-label="Save episode"
                 >
-                  <Download size={16} />
-                  <span>Download</span>
+                  <ListPlus size={16} />
+                  <span>Save Ep</span>
                 </button>
               </div>
             </div>

@@ -13,6 +13,7 @@ import {
   getSavedTheme,
   saveTheme,
   getDownloads,
+  DOWNLOADS_CHANGED_EVENT,
   removeDownload,
   clearAllDownloads
 } from './services/storage';
@@ -240,6 +241,13 @@ export default function App() {
   useBackHandler(Boolean(detailAnime), () => setDetailAnime(null));
   useBackHandler(isUpdateModalOpen && Boolean(updateInfo), () => setIsUpdateModalOpen(false));
   useBackHandler(isWatchPartyModalOpen, () => setIsWatchPartyModalOpen(false));
+
+  // Saved episodes can change from the player / detail modal; keep the list and badges in sync
+  useEffect(() => {
+    const sync = () => setDownloads(getDownloads());
+    window.addEventListener(DOWNLOADS_CHANGED_EVENT, sync);
+    return () => window.removeEventListener(DOWNLOADS_CHANGED_EVENT, sync);
+  }, []);
 
   // Hardware Back Button handling for Dedicated Android App
   useEffect(() => {
@@ -567,7 +575,6 @@ export default function App() {
             <div className="footer-tags">
               <span>HLS Stream: Active</span>
               <span>Multi-Track: SUB / HSUB / DUB</span>
-              <span>Offline: Supported</span>
             </div>
           </div>
         </div>

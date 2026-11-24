@@ -25,7 +25,7 @@ import {
   Search,
   Sliders,
   Tv,
-  Download,
+  ListPlus,
   Users
 } from 'lucide-react';
 import { getAnimeDetails, fetchFullFranchiseSeasons, resolveEpisodeCount, getAnimeSagasOrSeasons, getPublicBaseUrl } from '../services/api';
@@ -710,11 +710,11 @@ export default function ZokoPlayer({
             <button
               className="player-action-btn"
               onClick={() => setIsDownloadOpen(true)}
-              title="Download Episode for Offline Watching"
-              aria-label="Download episode"
+              title="Save this episode"
+              aria-label="Save episode"
             >
-              <Download size={15} />
-              <span>Download</span>
+              <ListPlus size={15} />
+              <span>Save Ep</span>
             </button>
 
             <button
@@ -992,14 +992,14 @@ export default function ZokoPlayer({
               {partyState?.active && <span className="pill-dot on" />}
             </button>
 
-            {/* Download shortcut (the header already has one; hidden on small screens) */}
+            {/* Save-episode shortcut (the header already has one; hidden on small screens) */}
             <button
               className="icon-btn toolbar-download-btn"
               onClick={() => setIsDownloadOpen(true)}
-              title="Download Episode for Offline Watching"
-              aria-label="Download Episode"
+              title="Save this episode"
+              aria-label="Save episode"
             >
-              <Download size={16} />
+              <ListPlus size={16} />
             </button>
 
             {/* Fullscreen Button */}
@@ -1487,7 +1487,7 @@ export default function ZokoPlayer({
         </div>
       </div>
 
-      {/* Offline Episode Download Modal */}
+      {/* Save Episode Modal */}
       <DownloadModal
         isOpen={isDownloadOpen}
         onClose={() => setIsDownloadOpen(false)}
@@ -1495,7 +1495,7 @@ export default function ZokoPlayer({
         currentEpisode={currentEpisode}
         currentTrack={currentTrack}
         server={server}
-        onDownloadSaved={() => showToast(`Saved Episode ${currentEpisode} to Offline Downloads!`)}
+        onDownloadSaved={() => showToast(`Saved Episode ${currentEpisode} to Episodes`)}
       />
 
       {/* Watch Party Live Drawer */}

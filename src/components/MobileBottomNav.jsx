@@ -1,12 +1,12 @@
 import React from 'react';
-import { Tv, Search, Bookmark, Download, Users } from 'lucide-react';
+import { Tv, Search, Bookmark, ListVideo, Users } from 'lucide-react';
 
 const TABS = [
   { view: 'home', label: 'Home', icon: Tv },
   { view: 'search', label: 'Search', icon: Search, isSearch: true },
   { view: 'party', label: 'Party', icon: Users, isParty: true },
   { view: 'watchlist', label: 'Saved', icon: Bookmark, badge: 'watchlist' },
-  { view: 'downloads', label: 'Offline', icon: Download, badge: 'downloads' }
+  { view: 'downloads', label: 'Episodes', icon: ListVideo, badge: 'downloads' }
 ];
 
 export default function MobileBottomNav({

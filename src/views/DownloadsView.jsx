@@ -1,5 +1,7 @@
 import React from 'react';
-import { Download, Play, Trash2, HardDrive, Film, ArrowRight } from 'lucide-react';
+import { ListPlus, ListVideo, Play, Trash2, Film, ArrowRight } from 'lucide-react';
+
+const TRACK_LABELS = { sub: 'SUB', hsub: 'HSUB', dub: 'DUB' };
 
 export default function DownloadsView({
   downloads = [],
@@ -8,23 +10,20 @@ export default function DownloadsView({
   onClearAllDownloads,
   onBrowseAnime
 }) {
-  const totalMb = downloads.reduce((acc, curr) => acc + (curr.sizeMb || 140), 0);
-  const formattedStorage = totalMb > 1024
-    ? `${(totalMb / 1024).toFixed(2)} GB`
-    : `${totalMb} MB`;
+  // Saved items store the AniList id as `animeId`; the player expects it as `id`
+  const play = (item) => onWatchAnime({ ...item, id: item.animeId }, item.episode);
 
   return (
     <div className="section-wrapper" style={{ marginTop: '1.5rem' }}>
-      {/* View Header */}
       <div className="section-header" style={{ alignItems: 'flex-start' }}>
         <div>
           <div className="section-title-group">
             <div className="section-indicator" />
-            <h1 className="section-title">Offline Downloads</h1>
+            <h1 className="section-title">Saved Episodes</h1>
           </div>
           <div className="section-subtitle">
-            <HardDrive size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-            {downloads.length} {downloads.length === 1 ? 'Episode' : 'Episodes'} available offline ({formattedStorage})
+            <ListVideo size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+            {downloads.length} {downloads.length === 1 ? 'episode' : 'episodes'} saved for quick access
           </div>
         </div>
 
@@ -33,12 +32,12 @@ export default function DownloadsView({
             type="button"
             className="btn-secondary"
             onClick={() => {
-              if (window.confirm(`Remove all ${downloads.length} offline ${downloads.length === 1 ? 'episode' : 'episodes'}?`)) {
+              if (window.confirm(`Remove all ${downloads.length} saved ${downloads.length === 1 ? 'episode' : 'episodes'}?`)) {
                 onClearAllDownloads();
               }
             }}
             style={{ padding: '0.45rem 0.85rem', fontSize: '0.78rem', color: '#fb7185' }}
-            title="Delete all downloaded episodes"
+            title="Remove all saved episodes"
           >
             <Trash2 size={14} />
             <span>Clear All</span>
@@ -46,15 +45,14 @@ export default function DownloadsView({
         )}
       </div>
 
-      {/* Downloads List */}
       {downloads.length === 0 ? (
         <div className="empty-state-card">
           <Film size={48} color="var(--text-dim)" style={{ margin: '0 auto 1rem' }} />
           <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '0.4rem' }}>
-            No Offline Episodes Yet
+            No Saved Episodes Yet
           </h3>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '460px', margin: '0 auto 1.5rem', lineHeight: '1.6' }}>
-            Tap the <Download size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> <strong>Download</strong> button on any episode in the video player or anime details card to save episodes for instant offline playback without buffering.
+            Tap <ListPlus size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> <strong>Save Ep</strong> in the video player or an anime's details to keep a shortcut to that exact episode and audio track.
           </p>
           <button
             type="button"
@@ -79,14 +77,14 @@ export default function DownloadsView({
                     <button
                       type="button"
                       className="card-quick-play-btn"
-                      onClick={() => onWatchAnime(item, item.episode)}
+                      onClick={() => play(item)}
                       title={`Play Episode ${item.episode}`}
                     >
                       <Play size={20} fill="currentColor" style={{ marginLeft: '2px' }} />
                     </button>
                   </div>
                   <div className="download-track-badge">
-                    {item.track?.toUpperCase() || 'SUB'}
+                    {TRACK_LABELS[item.track] || 'SUB'}
                   </div>
                 </div>
 
@@ -97,34 +95,30 @@ export default function DownloadsView({
                         {title}
                       </h4>
                       <div className="download-card-meta">
-                        Episode {item.episode} • {item.quality || '1080p'} • ~{item.sizeMb || 140} MB
+                        Episode {item.episode}
                       </div>
                     </div>
 
                     <button
                       type="button"
                       onClick={() => onRemoveDownload(item.animeId, item.episode)}
-                      title="Remove from offline storage"
-                      aria-label={`Remove ${title} episode ${item.episode} from offline storage`}
+                      title="Remove from saved episodes"
+                      aria-label={`Remove ${title} episode ${item.episode} from saved episodes`}
                       className="icon-btn download-remove-btn"
                     >
                       <Trash2 size={14} color="#fb7185" />
                     </button>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '0.65rem' }}>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--accent-color)', display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600 }}>
-                      <ShieldCheck size={12} /> Ready Offline
-                    </span>
-
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginTop: 'auto', paddingTop: '0.65rem' }}>
                     <button
                       type="button"
                       className="btn-primary"
-                      onClick={() => onWatchAnime(item, item.episode)}
+                      onClick={() => play(item)}
                       style={{ padding: '0.4rem 0.9rem', fontSize: '0.78rem' }}
                     >
                       <Play size={12} fill="currentColor" />
-                      <span>Play Offline</span>
+                      <span>Watch</span>
                     </button>
                   </div>
                 </div>
@@ -136,4 +130,3 @@ export default function DownloadsView({
     </div>
   );
 }
-

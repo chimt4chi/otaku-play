@@ -10,7 +10,7 @@ import {
   Star, 
   Compass, 
   Tv,
-  Download,
+  ListVideo,
   Smartphone,
   Sparkles,
   Users
@@ -113,8 +113,8 @@ export default function Navbar({
             className={`nav-item ${currentView === 'downloads' ? 'active' : ''}`}
             onClick={() => setCurrentView('downloads')}
           >
-            <Download size={16} />
-            <span>Downloads</span>
+            <ListVideo size={16} />
+            <span>Episodes</span>
             {downloadsCount > 0 && (
               <span className="badge badge-brand" style={{ padding: '0.1rem 0.45rem', fontSize: '0.65rem' }}>
                 {downloadsCount}

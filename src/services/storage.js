@@ -137,7 +137,17 @@ export function saveTheme(theme) {
   } catch (e) {}
 }
 
-// Offline Downloads Management
+// Saved episodes (stored under the legacy "downloads" key). Components that save or remove
+// episodes outside App (player, detail modal) rely on this event to keep counts in sync.
+export const DOWNLOADS_CHANGED_EVENT = 'otaku:downloads-changed';
+function notifyDownloadsChanged() {
+  try {
+    window.dispatchEvent(new Event(DOWNLOADS_CHANGED_EVENT));
+  } catch {
+    // Non-browser environment
+  }
+}
+
 export function getDownloads() {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.DOWNLOADS);
@@ -157,11 +167,11 @@ export function saveDownload(downloadItem) {
     const updatedItem = {
       ...downloadItem,
       downloadedAt: Date.now(),
-      status: 'downloaded',
-      sizeMb: downloadItem.sizeMb || Math.floor(Math.random() * 80 + 120) // Realistic ~140MB per 24min 1080p ep
+      status: 'saved'
     };
     const nextList = [updatedItem, ...filtered];
     localStorage.setItem(STORAGE_KEYS.DOWNLOADS, JSON.stringify(nextList));
+    notifyDownloadsChanged();
     return nextList;
   } catch (e) {
     console.error('Failed to save download', e);
@@ -176,6 +186,7 @@ export function removeDownload(animeId, episode) {
       item => !(item.animeId === animeId && item.episode === episode)
     );
     localStorage.setItem(STORAGE_KEYS.DOWNLOADS, JSON.stringify(nextList));
+    notifyDownloadsChanged();
     return nextList;
   } catch (e) {
     return getDownloads();
@@ -190,6 +201,7 @@ export function isEpisodeDownloaded(animeId, episode) {
 export function clearAllDownloads() {
   try {
     localStorage.removeItem(STORAGE_KEYS.DOWNLOADS);
+    notifyDownloadsChanged();
     return [];
   } catch (e) {
     return [];
