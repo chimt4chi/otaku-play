@@ -114,34 +114,27 @@ export default function OtaUpdateModal({ updateInfo, onClose, onUpdateComplete }
     onClose();
   };
 
-  // Format changelog markdown lines
-  const renderChangelog = (text) => {
-    if (!text) return null;
-    const lines = text.split('\n').filter(l => l.trim().length > 0);
-    return lines.map((line, idx) => {
-      const cleanLine = line.replace(/^[#\-*]+\s*/, '');
-      const isHeader = line.startsWith('#');
-      return (
-        <div 
-          key={idx} 
-          style={{ 
-            marginBottom: isHeader ? '0.6rem' : '0.35rem',
-            fontWeight: isHeader ? 700 : 400,
-            fontSize: isHeader ? '0.9rem' : '0.82rem',
-            color: isHeader ? 'var(--text-main)' : 'var(--text-muted)',
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '0.45rem'
-          }}
-        >
-          {!isHeader && (
-            <span style={{ color: 'var(--accent-color)', fontSize: '0.9rem', lineHeight: '1.2' }}>•</span>
-          )}
-          <span>{cleanLine}</span>
-        </div>
-      );
-    });
-  };
+  // GitHub release notes are markdown (headings, bold, links, emoji). Show them as clean text and
+  // leave out download-link lines: the button below already does that.
+  const changelogItems = (() => {
+    const items = String(updateInfo.changelog || '')
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l && !/https?:\/\//i.test(l))
+      .map(l => {
+        const kind = /^#/.test(l) ? 'heading' : /^[-*]\s/.test(l) ? 'bullet' : 'text';
+        const text = l
+          .replace(/^[#>\-*\s]+/, '')
+          .replace(/\*\*(.+?)\*\*/g, '$1')
+          .replace(/\[(.+?)\]\(.*?\)/g, '$1')
+          .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '')
+          .replace(/\uFE0F/g, '')
+          .trim();
+        return { kind, text };
+      })
+      .filter(i => i.text && !(i.kind === 'heading' && /direct downloads?|^otakuplay v?\d/i.test(i.text)));
+    return items;
+  })();
 
   return (
     <div className="ota-modal-backdrop" onClick={status === 'downloading' ? undefined : handleDismiss}>
@@ -162,10 +155,10 @@ export default function OtaUpdateModal({ updateInfo, onClose, onUpdateComplete }
               <Sparkles size={20} color="var(--accent-color)" />
             </div>
             <div style={{ minWidth: 0 }}>
-              <div className="ota-badge-pill">OVER-THE-AIR UPDATE</div>
-              <h2 id="ota-modal-title" className="ota-modal-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {updateInfo.title || `OtakuPlay v${updateInfo.latestVersion}`}
+              <h2 id="ota-modal-title" className="ota-modal-title">
+                Update available
               </h2>
+              <div className="ota-modal-subtitle">OtakuPlay v{updateInfo.latestVersion} is ready</div>
             </div>
           </div>
 
@@ -364,33 +357,39 @@ export default function OtaUpdateModal({ updateInfo, onClose, onUpdateComplete }
 
           {status === 'idle' && (
             <>
-              {/* Changelog Section */}
               <div className="ota-changelog-container">
-                <div className="ota-changelog-header">
-                  <span>What's New in This Release:</span>
-                </div>
+                <div className="ota-changelog-header">What's new</div>
                 <div className="ota-changelog-content">
-                  {renderChangelog(updateInfo.changelog)}
+                  {changelogItems.length === 0 ? (
+                    <p className="ota-cl-text">Performance improvements and bug fixes.</p>
+                  ) : changelogItems.map((item, idx) => (
+                    item.kind === 'bullet' ? (
+                      <div key={idx} className="ota-cl-bullet"><span aria-hidden="true">•</span><span>{item.text}</span></div>
+                    ) : item.kind === 'heading' ? (
+                      <div key={idx} className="ota-cl-heading">{item.text}</div>
+                    ) : (
+                      <p key={idx} className="ota-cl-text">{item.text}</p>
+                    )
+                  ))}
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="ota-modal-actions">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="btn-primary ota-action-btn"
                   onClick={handleStartUpdate}
                 >
                   <Download size={16} />
-                  <span>{updateInfo.isNative ? 'Download & Install OTA' : 'Download Update APK'}</span>
+                  <span>{updateInfo.isNative ? 'Update now' : 'Download APK'}</span>
                 </button>
 
-                <button 
-                  type="button" 
-                  className="btn-secondary ota-action-btn secondary"
+                <button
+                  type="button"
+                  className="ota-later-btn"
                   onClick={handleDismiss}
                 >
-                  <span>Remind Me Later</span>
+                  Remind me later
                 </button>
               </div>
             </>
@@ -398,19 +397,20 @@ export default function OtaUpdateModal({ updateInfo, onClose, onUpdateComplete }
         </div>
         </div>
 
-        {/* Pinned Footer info */}
-        <div className="ota-modal-footer">
-          <span>Automated OtakuPlay Release Pipeline</span>
-          <a 
-            href={updateInfo.releaseUrl} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="ota-github-link"
-          >
-            <span>View Release on GitHub</span>
-            <ExternalLink size={12} />
-          </a>
-        </div>
+        {/* Pinned footer */}
+        {updateInfo.releaseUrl && (
+          <div className="ota-modal-footer">
+            <a
+              href={updateInfo.releaseUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ota-github-link"
+            >
+              <span>View release notes on GitHub</span>
+              <ExternalLink size={12} />
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );

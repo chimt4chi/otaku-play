@@ -17,7 +17,7 @@ on:
       release_notes:
         description: 'Changelog / Release Notes'
         required: false
-        default: 'Performance improvements, notch safe-area protection, offline downloads, and streaming updates.'
+        default: 'Performance and stability improvements, plus a refreshed in-app update experience.'
 
 permissions:
   contents: write
@@ -97,7 +97,7 @@ jobs:
           body: |
             ## 📱 OtakuPlay ${{ steps.prepare.outputs.tag }}
             
-            ${{ github.event.inputs.release_notes || 'Official Android release of OtakuPlay featuring offline downloads, notch & safe-area protection, multi-server streaming, and adaptive HLS playback.' }}
+            ${{ github.event.inputs.release_notes || 'Official Android release of OtakuPlay with multi-server streaming, adaptive HLS playback, and in-app updates.' }}
             
             ### 📦 Direct Downloads
             - **Download APK**: [${{ steps.prepare.outputs.apk_name }}](https://github.com/${{ github.repository }}/releases/download/${{ steps.prepare.outputs.tag }}/${{ steps.prepare.outputs.apk_name }})
