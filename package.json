@@ -11,6 +11,7 @@
     "build:apk": "powershell -ExecutionPolicy Bypass -File scripts/build-apk.ps1",
     "release": "powershell -ExecutionPolicy Bypass -File scripts/release.ps1",
     "lint": "oxlint",
+    "test": "node --test \"tests/*.test.mjs\"",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -1094,7 +1094,7 @@ export default function ZokoPlayer({
                   return (
                     <div key={char.id} className="character-card">
                       <img
-                        src={char.image?.large || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'}
+                        src={char.image?.large || '/placeholder.svg'}
                         alt={char.name?.full}
                         className="char-avatar-img"
                         loading="lazy"

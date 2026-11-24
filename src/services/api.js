@@ -782,7 +782,7 @@ export async function getAnimeDetails(id) {
               },
               voiceActors: [{
                 name: { full: 'Yuki Kaji', native: '梶 裕貴' },
-                image: { large: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200' }
+                image: { large: '/placeholder.svg' }
               }]
             }
           ]
@@ -803,10 +803,10 @@ export const FALLBACK_TRENDING = [
     idMal: 16498,
     title: { english: "Attack on Titan", romaji: "Shingeki no Kyojin" },
     description: "Centuries ago, mankind was slaughtered to near extinction by monstrous humanoid creatures called Titans, forcing humans to hide in fear behind enormous concentric walls.",
-    bannerImage: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=1600&auto=format&fit=crop&q=80",
+    bannerImage: "/placeholder.svg",
     coverImage: {
-      extraLarge: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&auto=format&fit=crop&q=80",
-      large: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&auto=format&fit=crop&q=80",
+      extraLarge: "/placeholder.svg",
+      large: "/placeholder.svg",
       color: "#e45c3a"
     },
     format: "TV",
@@ -823,10 +823,10 @@ export const FALLBACK_TRENDING = [
     idMal: 38000,
     title: { english: "Demon Slayer: Kimetsu no Yaiba", romaji: "Kimetsu no Yaiba" },
     description: "Tanjiro Kamado is a kindhearted boy whose peaceful life is shattered when demons slaughter his family and turn his sister Nezuko into a demon.",
-    bannerImage: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1600&auto=format&fit=crop&q=80",
+    bannerImage: "/placeholder.svg",
     coverImage: {
-      extraLarge: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&auto=format&fit=crop&q=80",
-      large: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&auto=format&fit=crop&q=80",
+      extraLarge: "/placeholder.svg",
+      large: "/placeholder.svg",
       color: "#2ec4b6"
     },
     format: "TV",
@@ -843,10 +843,10 @@ export const FALLBACK_TRENDING = [
     idMal: 40748,
     title: { english: "Jujutsu Kaisen", romaji: "Jujutsu Kaisen" },
     description: "Yuji Itadori swallows a cursed talisman—the finger of the demon Ryomen Sukuna—and becomes possessed. He enters Tokyo Jujutsu High School to learn sorcery and vanquish curses.",
-    bannerImage: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=1600&auto=format&fit=crop&q=80",
+    bannerImage: "/placeholder.svg",
     coverImage: {
-      extraLarge: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&auto=format&fit=crop&q=80",
-      large: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&auto=format&fit=crop&q=80",
+      extraLarge: "/placeholder.svg",
+      large: "/placeholder.svg",
       color: "#8338ec"
     },
     format: "TV",
@@ -863,10 +863,10 @@ export const FALLBACK_TRENDING = [
     idMal: 52991,
     title: { english: "Frieren: Beyond Journey's End", romaji: "Sousou no Frieren" },
     description: "The adventure is over, but life goes on for an elven mage just beginning to learn what living is all about after the hero Himmel passes away.",
-    bannerImage: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1600&auto=format&fit=crop&q=80",
+    bannerImage: "/placeholder.svg",
     coverImage: {
-      extraLarge: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80",
-      large: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80",
+      extraLarge: "/placeholder.svg",
+      large: "/placeholder.svg",
       color: "#38bdf8"
     },
     format: "TV",
@@ -887,10 +887,10 @@ export const FALLBACK_POPULAR = [
     idMal: 21,
     title: { english: "One Piece", romaji: "ONE PIECE" },
     description: "Gol D. Roger, a man referred to as the 'King of the Pirates,' promised the world his greatest treasure: the One Piece. Monkey D. Luffy sets out to sea to claim it.",
-    bannerImage: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=1600&auto=format&fit=crop&q=80",
+    bannerImage: "/placeholder.svg",
     coverImage: {
-      extraLarge: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80",
-      large: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80",
+      extraLarge: "/placeholder.svg",
+      large: "/placeholder.svg",
       color: "#fbbf24"
     },
     format: "TV",
@@ -907,10 +907,10 @@ export const FALLBACK_POPULAR = [
     idMal: 1535,
     title: { english: "Death Note", romaji: "Death Note" },
     description: "A shinigami dropped a notebook that allows anyone to kill anyone whose face and name they know. Brilliant student Light Yagami finds it and decides to reshape the world.",
-    bannerImage: "https://images.unsplash.com/photo-1514539079130-25950c84af65?w=1600&auto=format&fit=crop&q=80",
+    bannerImage: "/placeholder.svg",
     coverImage: {
-      extraLarge: "https://images.unsplash.com/photo-1514539079130-25950c84af65?w=600&auto=format&fit=crop&q=80",
-      large: "https://images.unsplash.com/photo-1514539079130-25950c84af65?w=600&auto=format&fit=crop&q=80",
+      extraLarge: "/placeholder.svg",
+      large: "/placeholder.svg",
       color: "#475569"
     },
     format: "TV",
@@ -927,10 +927,10 @@ export const FALLBACK_POPULAR = [
     idMal: 11061,
     title: { english: "Hunter x Hunter (2011)", romaji: "Hunter x Hunter (2011)" },
     description: "Gon Freecss aspires to become a Hunter, an exceptional being capable of greatness. With friends Killua, Kurapika, and Leorio, he embarks on an unforgettable journey.",
-    bannerImage: "https://images.unsplash.com/photo-1563089145-599997674d42?w=1600&auto=format&fit=crop&q=80",
+    bannerImage: "/placeholder.svg",
     coverImage: {
-      extraLarge: "https://images.unsplash.com/photo-1563089145-599997674d42?w=600&auto=format&fit=crop&q=80",
-      large: "https://images.unsplash.com/photo-1563089145-599997674d42?w=600&auto=format&fit=crop&q=80",
+      extraLarge: "/placeholder.svg",
+      large: "/placeholder.svg",
       color: "#10b981"
     },
     format: "TV",
@@ -947,10 +947,10 @@ export const FALLBACK_POPULAR = [
     idMal: 20,
     title: { english: "Naruto", romaji: "Naruto" },
     description: "Moments prior to Naruto Uzumaki's birth, a huge demon known as the Kyuubi struck Konohagakure. Naruto grows up shunned, seeking recognition by becoming Hokage.",
-    bannerImage: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1600&auto=format&fit=crop&q=80",
+    bannerImage: "/placeholder.svg",
     coverImage: {
-      extraLarge: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80",
-      large: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80",
+      extraLarge: "/placeholder.svg",
+      large: "/placeholder.svg",
       color: "#f97316"
     },
     format: "TV",

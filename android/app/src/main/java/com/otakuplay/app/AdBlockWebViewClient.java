@@ -52,43 +52,48 @@ public class AdBlockWebViewClient extends BridgeWebViewClient {
         return super.shouldOverrideUrlLoading(view, request);
     }
 
-    private boolean isAdResource(String host, String url) {
-        if (host == null && url == null) return false;
+    // Hosts the app itself depends on: never filtered (AniList banner URLs contain "/banner/")
+    private static final String[] TRUSTED_DOMAINS = {
+        "localhost", "anilist.co", "zokoanime.video", "github.com",
+        "githubusercontent.com", "peerjs.com", "twilio.com", "google.com", "gstatic.com"
+    };
 
+    // Registrable domains of ad / tracking networks (matches the domain and any subdomain)
+    private static final String[] BLOCKED_DOMAINS = {
+        "butchestusker.com", "doubleclick.net", "googleadservices.com", "googlesyndication.com",
+        "adnxs.com", "yadro.ru"
+    };
+
+    // Distinctive ad-network brand names that appear inside rotating domains
+    private static final String[] BLOCKED_HOST_TOKENS = {
+        "adsterra", "popads", "propellerads", "exoclick", "bet365", "1xbet", "monetag",
+        "highrevenuegate", "clickadu", "juicyads", "hilltopads", "trafficjunky", "popcash"
+    };
+
+    private static boolean matchesDomain(String host, String[] domains) {
+        for (String d : domains) {
+            if (host.equals(d) || host.endsWith("." + d)) return true;
+        }
+        return false;
+    }
+
+    private boolean isAdResource(String host, String url) {
         String checkHost = host != null ? host.toLowerCase() : "";
         String checkUrl = url != null ? url.toLowerCase() : "";
+        if (checkHost.isEmpty()) return false;
 
-        // Known anime video host ad networks, popunders, click-hijackers & trackers
-        if (checkHost.contains("butchestusker.com") ||
-            checkHost.contains("adsterra") ||
-            checkHost.contains("popads") ||
-            checkHost.contains("propellerads") ||
-            checkHost.contains("exoclick") ||
-            checkHost.contains("bet365") ||
-            checkHost.contains("1xbet") ||
-            checkHost.contains("monetag") ||
-            checkHost.contains("highrevenuegate") ||
-            checkHost.contains("doubleclick") ||
-            checkHost.contains("googleadservices") ||
-            checkHost.contains("googlesyndication") ||
-            checkHost.contains("clickadu") ||
-            checkHost.contains("adnxs") ||
-            checkHost.contains("juicyads") ||
-            checkHost.contains("hilltopads") ||
-            checkHost.contains("trafficjunky") ||
-            checkHost.contains("adx") ||
-            checkHost.contains("popcash") ||
-            checkHost.contains("onclick") ||
-            checkHost.contains("yadro.ru") ||
-            checkUrl.contains("/adbar") ||
-            checkUrl.contains("google_ads") ||
-            checkUrl.contains("popunder") ||
-            checkUrl.contains("/banner/") ||
-            checkUrl.contains("zone_id=") ||
-            checkUrl.contains("ad_type=")) {
-            return true;
+        if (matchesDomain(checkHost, TRUSTED_DOMAINS)) return false;
+        if (matchesDomain(checkHost, BLOCKED_DOMAINS)) return true;
+
+        for (String token : BLOCKED_HOST_TOKENS) {
+            if (checkHost.contains(token)) return true;
         }
 
-        return false;
+        // Third-party URL patterns typical of popunders and ad zones
+        return checkUrl.contains("/adbar") ||
+            checkUrl.contains("google_ads") ||
+            checkUrl.contains("popunder") ||
+            checkUrl.contains("zone_id=") ||
+            checkUrl.contains("ad_type=");
     }
 }

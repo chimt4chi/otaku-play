@@ -8,7 +8,7 @@ export default function AnimeCard({
   ranking = null
 }) {
   const title = anime.title?.english || anime.title?.romaji || 'Anime';
-  const poster = anime.coverImage?.large || anime.coverImage?.extraLarge || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600';
+  const poster = anime.coverImage?.large || anime.coverImage?.extraLarge || '/placeholder.svg';
   const score = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : null;
 
   const handleKeyDown = (e) => {

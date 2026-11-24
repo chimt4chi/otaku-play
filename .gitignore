@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local build output copy (the APK ships via GitHub Releases)
+/OtakuPlay.apk

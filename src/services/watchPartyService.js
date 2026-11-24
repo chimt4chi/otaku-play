@@ -83,7 +83,7 @@ class WatchPartyManager {
   }
 
   // 1. Host creates a new room
-  async createRoom(username, anime, episode = 1, currentTime = 0, avatarColor = '#35d5bf') {
+  async createRoom(username, anime, episode = 1, currentTime = 0, avatarColor = '#35d5bf', _attempt = 0) {
     this.leaveRoom();
 
     const code = generateRoomCode();
@@ -134,7 +134,8 @@ class WatchPartyManager {
 
           // Host heartbeat to keep room members synced
           this.syncInterval = setInterval(() => {
-            if (this.lastSyncState) {
+            // Nothing to report while the app is backgrounded; saves battery and data
+            if (this.lastSyncState && !(typeof document !== 'undefined' && document.hidden)) {
               this.broadcast({
                 type: 'SYNC',
                 payload: this.lastSyncState
@@ -153,8 +154,15 @@ class WatchPartyManager {
           console.warn('[WatchParty] Host Peer error:', err);
           if (err.type === 'unavailable-id') {
             // Collision or lingering session; generate new code and retry
+            if (_attempt >= 3) {
+              this.leaveRoom();
+              const failure = new Error('Could not reserve a room code, please try again');
+              this.emit('error', failure.message);
+              reject(failure);
+              return;
+            }
             this.leaveRoom();
-            this.createRoom(username, anime, episode, currentTime, avatarColor)
+            this.createRoom(username, anime, episode, currentTime, avatarColor, _attempt + 1)
               .then(resolve)
               .catch(reject);
           } else {
@@ -164,6 +172,12 @@ class WatchPartyManager {
 
         this.peer.on('disconnected', () => {
           this.emit('status', { state: 'disconnected', message: 'Disconnected from signaling server' });
+          // Existing guest connections survive; re-register with the signaling server so new guests can join
+          try {
+            if (this.peer && !this.peer.destroyed) this.peer.reconnect();
+          } catch {
+            // Peer already torn down
+          }
         });
 
       } catch (err) {
