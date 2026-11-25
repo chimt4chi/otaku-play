@@ -5,7 +5,7 @@ import packageJson from '../../package.json';
 // Register the custom native OTA Android plugin (safe fallback if not native)
 const OtaUpdater = registerPlugin('OtaUpdater');
 
-export const CURRENT_APP_VERSION = packageJson.version || '1.2.5';
+export const CURRENT_APP_VERSION = packageJson.version || '1.4.1';
 export const GITHUB_REPO = 'chimt4chi/otaku-play';
 export const FALLBACK_VERSION = CURRENT_APP_VERSION;
 
@@ -46,7 +46,7 @@ export function compareVersions(v1, v2) {
 export async function getCurrentAppInfo() {
   const isNative = Capacitor.isNativePlatform();
   let versionName = CURRENT_APP_VERSION;
-  let versionCode = 8;
+  let versionCode = 12;
   let packageName = 'com.otakuplay.app';
   let canInstallUnknownApps = true;
 

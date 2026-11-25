@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { ALL_GENRES, getAnimeByGenre } from '../services/api';
 import AnimeCard from '../components/AnimeCard';
+import SectionHeader from '../components/SectionHeader';
+import { CardGridSkeleton } from '../components/CarouselRow';
 import { Compass } from 'lucide-react';
 
 export default function GenresView({ onWatchAnime, onViewDetails }) {
   const [activeGenre, setActiveGenre] = useState('Action');
   const [list, setList] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -24,22 +26,21 @@ export default function GenresView({ onWatchAnime, onViewDetails }) {
   }, [activeGenre]);
 
   return (
-    <div className="section-wrapper" style={{ marginTop: '2rem' }}>
-      <div className="section-header">
-        <div className="section-title-group">
-          <div className="section-indicator" />
-          <h1 className="section-title">Explore By Genre</h1>
-        </div>
-        <div className="section-subtitle">
-          <Compass size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-          Discover titles in {activeGenre}
-        </div>
-      </div>
+    <div className="section-wrapper page-section">
+      <SectionHeader
+        title="Explore by Genre"
+        as="h1"
+        icon={Compass}
+        subtitle={`Discover titles in ${activeGenre}`}
+      />
 
-      <div className="genre-pills-wrap">
+      <div className="genre-pills-wrap" role="tablist" aria-label="Filter by genre">
         {ALL_GENRES.map(genre => (
           <button
             key={genre}
+            type="button"
+            role="tab"
+            aria-selected={activeGenre === genre}
             className={`genre-pill ${activeGenre === genre ? 'active' : ''}`}
             onClick={() => setActiveGenre(genre)}
           >
@@ -48,18 +49,16 @@ export default function GenresView({ onWatchAnime, onViewDetails }) {
         ))}
       </div>
 
-      {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem' }}>
-          <div className="player-spinner" />
-        </div>
+      {loading && list.length === 0 ? (
+        <CardGridSkeleton />
       ) : (
-        <div className="anime-grid">
+        <div className={`anime-grid carousel-fade-wrap ${loading ? 'is-loading' : ''}`}>
           {list.map(anime => (
-            <AnimeCard 
-              key={anime.id} 
-              anime={anime} 
-              onWatch={onWatchAnime} 
-              onViewDetails={onViewDetails} 
+            <AnimeCard
+              key={anime.id}
+              anime={anime}
+              onWatch={onWatchAnime}
+              onViewDetails={onViewDetails}
             />
           ))}
         </div>

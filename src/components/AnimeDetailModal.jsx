@@ -3,6 +3,7 @@ import { X, Play, Star, Bookmark, Calendar, Film, Layers, UserCheck, ListPlus } 
 import { getAnimeDetails, resolveEpisodeCount } from '../services/api';
 import AnimeCard from './AnimeCard';
 import DownloadModal from './DownloadModal';
+import CarouselRow from './CarouselRow';
 
 export default function AnimeDetailModal({
   anime,
@@ -202,7 +203,7 @@ export default function AnimeDetailModal({
               <h4 className="detail-modal-heading">
                 You Might Also Like
               </h4>
-              <div className="carousel-row">
+              <CarouselRow label="You Might Also Like">
                 {recommendations.slice(0, 6).map(rec => (
                   <AnimeCard
                     key={rec.id}
@@ -211,7 +212,7 @@ export default function AnimeDetailModal({
                     onViewDetails={(a) => setDetails(a)}
                   />
                 ))}
-              </div>
+              </CarouselRow>
             </div>
           )}
         </div>

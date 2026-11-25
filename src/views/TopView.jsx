@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getTopRatedAnime } from '../services/api';
 import AnimeCard from '../components/AnimeCard';
+import SectionHeader from '../components/SectionHeader';
+import { CardGridSkeleton } from '../components/CarouselRow';
 import { Star } from 'lucide-react';
 
 export default function TopView({ onWatchAnime, onViewDetails }) {
@@ -22,31 +24,25 @@ export default function TopView({ onWatchAnime, onViewDetails }) {
   }, []);
 
   return (
-    <div className="section-wrapper" style={{ marginTop: '2rem' }}>
-      <div className="section-header">
-        <div className="section-title-group">
-          <div className="section-indicator" />
-          <h1 className="section-title">Top Rated Masterpieces</h1>
-        </div>
-        <div className="section-subtitle">
-          <Star size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-          Critically acclaimed anime of all time
-        </div>
-      </div>
+    <div className="section-wrapper page-section">
+      <SectionHeader
+        title="Top Rated"
+        as="h1"
+        icon={Star}
+        subtitle="Critically acclaimed anime of all time"
+      />
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem' }}>
-          <div className="player-spinner" />
-        </div>
+        <CardGridSkeleton />
       ) : (
         <div className="anime-grid">
           {list.map((anime, idx) => (
-            <AnimeCard 
-              key={anime.id} 
-              anime={anime} 
+            <AnimeCard
+              key={anime.id}
+              anime={anime}
               ranking={idx + 1}
-              onWatch={onWatchAnime} 
-              onViewDetails={onViewDetails} 
+              onWatch={onWatchAnime}
+              onViewDetails={onViewDetails}
             />
           ))}
         </div>

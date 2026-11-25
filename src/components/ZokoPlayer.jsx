@@ -33,6 +33,7 @@ import { savePlayerConfig, getPlayerConfig } from '../services/storage';
 import { watchPartyService } from '../services/watchPartyService';
 import AnimeCard from './AnimeCard';
 import DownloadModal from './DownloadModal';
+import CarouselRow from './CarouselRow';
 import WatchPartyDrawer from './WatchPartyDrawer';
 import { setNativeFullscreen, setKeepAwake, isNativeApp } from '../services/nativePlayer';
 import { useBackHandler } from '../services/backStack';
@@ -230,6 +231,7 @@ export default function ZokoPlayer({
     setIsFullscreen(enter);
     setNativeFullscreen(enter);
     sendPlayerMessage({ type: 'fullscreen', active: enter });
+    sendPlayerMessage({ type: enter ? 'play' : 'pause' });
   }, [sendPlayerMessage]);
 
   // Throttled progress reporting (Fix: battery drain and micro-stuttering)
@@ -502,9 +504,10 @@ export default function ZokoPlayer({
     isNativeFullscreenRef.current = usesOverlayFullscreen() && isFullscreen;
   }, [isFullscreen]);
 
-  // TV: playback starts fullscreen, and picking another episode returns to it
+  // App (phone and TV): the player is the whole screen. Opening or switching an episode goes
+  // straight to it; Back returns to the episode page.
   useEffect(() => {
-    if (isTv()) changeNativeFullscreen(true);
+    if (usesOverlayFullscreen()) changeNativeFullscreen(true);
   }, [currentEpisode, currentAnime?.id, changeNativeFullscreen]);
 
   // Keep the screen on while watching; always restore system bars and orientation on exit
@@ -684,7 +687,13 @@ export default function ZokoPlayer({
   const recommendations = detailsData?.recommendations?.nodes?.map(n => n.mediaRecommendation).filter(Boolean) || currentAnime.recommendations?.nodes?.map(n => n.mediaRecommendation).filter(Boolean) || [];
 
   return (
-    <div className={`player-page-container ${theaterMode ? 'theater-mode' : ''}`}>
+    <div
+      className={`player-page-container ${theaterMode ? 'theater-mode' : ''} ${usesOverlayFullscreen() ? 'app-player' : ''}`}
+      // Tapping the episode that is already selected also opens the player
+      onClick={(e) => {
+        if (usesOverlayFullscreen() && e.target.closest('.episode-cell-btn.active')) changeNativeFullscreen(true);
+      }}
+    >
       {/* Toast Notification */}
       {toastMessage && (
         <div className="player-toast" role="status" aria-live="polite">
@@ -856,6 +865,31 @@ export default function ZokoPlayer({
             tabIndex={isTv() ? -1 : undefined}
           />
 
+          {/* Episode page: artwork with one button instead of a second, embedded-looking player */}
+          {usesOverlayFullscreen() && !isFullscreen && (
+            <div className="player-resume-cover">
+              <img
+                src={currentAnime.bannerImage || detailsData?.bannerImage || currentAnime.coverImage?.extraLarge || currentAnime.coverImage?.large || '/placeholder.svg'}
+                alt=""
+              />
+              <button type="button" className="btn-primary" onClick={() => changeNativeFullscreen(true)}>
+                <Play size={18} fill="currentColor" />
+                <span>Play Episode {currentEpisode}</span>
+              </button>
+            </div>
+          )}
+
+          {usesOverlayFullscreen() && !isTv() && isFullscreen && (
+            <button
+              type="button"
+              className="player-fs-back"
+              onClick={() => changeNativeFullscreen(false)}
+              aria-label="Back to episodes"
+            >
+              <ArrowLeft size={20} />
+            </button>
+          )}
+
           {isTv() && isFullscreen && (
             <TvPlayerControls
               title={title}
@@ -1005,7 +1039,7 @@ export default function ZokoPlayer({
 
             {/* Watch Party Pill in Player Controls Toolbar */}
             <button
-              className={`pill-toggle-btn ${partyState?.active ? 'active' : ''}`}
+              className={`pill-toggle-btn toolbar-party-btn ${partyState?.active ? 'active' : ''}`}
               onClick={partyState?.active ? () => setIsPartyDrawerOpen(!isPartyDrawerOpen) : onOpenWatchPartyModal}
               title={partyState?.active ? `Watch Party Active (${partyState.members.length} viewing)` : 'Start or Join Watch Party'}
             >
@@ -1307,7 +1341,7 @@ export default function ZokoPlayer({
 
           {/* Tab 4: Recommendations */}
           {infoTab === 'recommendations' && (
-            <div className="carousel-row">
+            <CarouselRow label="Recommended Anime">
               {recommendations.slice(0, 8).map(rec => (
                 <AnimeCard
                   key={rec.id}
@@ -1316,7 +1350,7 @@ export default function ZokoPlayer({
                   onViewDetails={onViewDetails}
                 />
               ))}
-            </div>
+            </CarouselRow>
           )}
         </div>
       </div>

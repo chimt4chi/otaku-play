@@ -223,11 +223,20 @@ export default function App() {
     saveTheme(theme);
   }, [theme]);
 
-  // Apply dynamic accent color
+  // Apply dynamic accent color + RGB channel for atmospheric gradients
   useEffect(() => {
+    const hex = playerConfig.accentColor.replace('#', '');
+    if (hex.length === 6) {
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      if (!isNaN(r) && !isNaN(g) && !isNaN(b)) {
+        document.documentElement.style.setProperty('--accent-rgb', `${r}, ${g}, ${b}`);
+      }
+    }
     document.documentElement.style.setProperty('--accent-color', playerConfig.accentColor);
-    document.documentElement.style.setProperty('--accent-glow', `${playerConfig.accentColor}55`);
-    document.documentElement.style.setProperty('--accent-soft', `${playerConfig.accentColor}18`);
+    document.documentElement.style.setProperty('--accent-glow', `${playerConfig.accentColor}44`);
+    document.documentElement.style.setProperty('--accent-soft', `${playerConfig.accentColor}16`);
     savePlayerConfig({ accentColor: playerConfig.accentColor });
   }, [playerConfig.accentColor]);
 
@@ -570,33 +579,38 @@ export default function App() {
       {/* Footer */}
       <footer className="app-footer">
         <div className="footer-inner">
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 900, letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '1.15rem' }}>
-              <span style={{ color: 'var(--accent-color)' }}>⚡ OTAKU</span>
-              <span>PLAY</span>
+          <div className="footer-brand">
+            <div className="footer-logo">
+              <span className="footer-logo-accent">Otaku</span>
+              <span>Play</span>
+              <span className="footer-version-pill">v{CURRENT_APP_VERSION}</span>
             </div>
-            {/* <p style={{ color: 'var(--text-dim)', fontSize: '0.8rem', marginTop: '0.35rem', fontFamily: 'var(--font-mono)' }}>
-              Dedicated anime streaming app with ZokoAnime adaptive engine & AniList metadata.
-            </p> */}
+            <p className="footer-tagline">
+              Adaptive HLS anime streaming with Watch Party sync & offline episode shortcuts.
+            </p>
           </div>
+
+          <nav className="footer-nav" aria-label="Footer Navigation">
+            <button type="button" onClick={() => { setCurrentView('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Home</button>
+            <button type="button" onClick={() => { setCurrentView('genres'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Genres</button>
+            <button type="button" onClick={() => { setCurrentView('popular'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Popular</button>
+            <button type="button" onClick={() => { setCurrentView('top'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Top Rated</button>
+          </nav>
 
           <div className="footer-actions">
             {!isNativeApp && (
               <a
                 href="/assets/OtakuPlay.apk"
                 download="OtakuPlay.apk"
-                className="btn-secondary"
-                style={{ fontSize: '0.78rem', padding: '0.45rem 0.85rem' }}
+                className="btn-secondary footer-apk-btn"
                 title="Download Dedicated Android App"
               >
                 <Smartphone size={14} color="var(--accent-color)" />
-                <span>Download APK</span>
+                <span>Android APK</span>
               </a>
             )}
-
             <div className="footer-tags">
-              <span>HLS Stream: Active</span>
-              <span>Multi-Track: SUB / HSUB / DUB</span>
+              <span>SUB · HSUB · DUB</span>
             </div>
           </div>
         </div>

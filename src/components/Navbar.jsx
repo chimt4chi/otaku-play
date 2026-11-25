@@ -63,87 +63,77 @@ export default function Navbar({
     <nav className="navbar">
       <div className="navbar-inner">
         {/* Brand Logo */}
-        <div 
+        <button
+          type="button"
           className="brand-logo" 
           onClick={() => setCurrentView('home')} 
-          style={{ cursor: 'pointer' }}
-          title="Otaku Anime Streaming"
+          title="OtakuPlay Home"
         >
           <div className="logo-icon">
-            <Play size={18} fill="currentColor" />
+            <Play size={16} fill="currentColor" />
           </div>
-          <span className="logo-text">OTAKU<span style={{ fontSize: '0.85em', opacity: 0.85, color: 'var(--accent-color)' }}>PLAY</span></span>
-        </div>
+          <span className="logo-text">Otaku<span>Play</span></span>
+        </button>
 
-        {/* Navigation Links (Desktop/Tablet) */}
-        <div className="nav-links">
+        {/* Navigation Links (Desktop/Tablet Pill Group) */}
+        <div className="nav-links" role="navigation" aria-label="Primary">
           <button 
+            type="button"
             className={`nav-item ${currentView === 'home' ? 'active' : ''}`}
             onClick={() => setCurrentView('home')}
           >
-            <Tv size={16} />
+            <Tv size={15} />
             <span>Home</span>
           </button>
 
           <button 
+            type="button"
             className={`nav-item ${currentView === 'genres' ? 'active' : ''}`}
             onClick={() => setCurrentView('genres')}
           >
-            <Compass size={16} />
-            <span>Browse Genres</span>
+            <Compass size={15} />
+            <span>Genres</span>
           </button>
 
           <button 
+            type="button"
             className={`nav-item ${currentView === 'popular' ? 'active' : ''}`}
             onClick={() => setCurrentView('popular')}
           >
-            <Flame size={16} />
+            <Flame size={15} />
             <span>Popular</span>
           </button>
 
           <button 
+            type="button"
             className={`nav-item ${currentView === 'top' ? 'active' : ''}`}
             onClick={() => setCurrentView('top')}
           >
-            <Star size={16} />
+            <Star size={15} />
             <span>Top Rated</span>
           </button>
 
           <button 
+            type="button"
             className={`nav-item ${currentView === 'downloads' ? 'active' : ''}`}
             onClick={() => setCurrentView('downloads')}
           >
-            <ListVideo size={16} />
-            <span>Episodes</span>
+            <ListVideo size={15} />
+            <span>Saved</span>
             {downloadsCount > 0 && (
-              <span className="badge badge-brand" style={{ padding: '0.1rem 0.45rem', fontSize: '0.65rem' }}>
-                {downloadsCount}
-              </span>
+              <span className="nav-count-pill">{downloadsCount}</span>
             )}
           </button>
 
           <button 
+            type="button"
             className={`nav-item ${currentView === 'watchlist' ? 'active' : ''}`}
             onClick={() => setCurrentView('watchlist')}
           >
-            <Bookmark size={16} />
+            <Bookmark size={15} />
             <span>Watchlist</span>
             {watchlistCount > 0 && (
-              <span className="badge badge-brand" style={{ padding: '0.1rem 0.45rem', fontSize: '0.65rem' }}>
-                {watchlistCount}
-              </span>
-            )}
-          </button>
-
-          <button 
-            className={`nav-item ${partyInfo?.active ? 'active' : ''}`}
-            onClick={onOpenPartyModal}
-            title={partyInfo?.active ? `Watch Party Active (${partyInfo.roomCode})` : 'Anime Watch Party'}
-          >
-            <Users size={16} />
-            <span>Party</span>
-            {partyInfo?.active && (
-              <span className="party-pill-dot" style={{ marginLeft: '4px' }} />
+              <span className="nav-count-pill">{watchlistCount}</span>
             )}
           </button>
         </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Play, Star } from 'lucide-react';
 
-export default function AnimeCard({
+function AnimeCard({
   anime,
   onWatch,
   onViewDetails,
@@ -37,23 +37,18 @@ export default function AnimeCard({
           decoding="async"
           draggable={false}
         />
+        <div className="card-poster-scrim" aria-hidden="true" />
 
         {/* Ranking or Format badge */}
-        {ranking && (
+        {ranking ? (
           <div className="card-overlay-badge">
-            <span className="badge badge-brand" style={{ fontSize: '0.7rem' }}>
-              #{ranking}
-            </span>
+            <span className="card-rank-pill">#{ranking}</span>
           </div>
-        )}
-
-        {!ranking && anime.format && (
+        ) : anime.format ? (
           <div className="card-overlay-badge">
-            <span className="badge" style={{ fontSize: '0.65rem' }}>
-              {anime.format}
-            </span>
+            <span className="card-format-pill">{anime.format}</span>
           </div>
-        )}
+        ) : null}
 
         {/* Score Badge */}
         {score && (
@@ -66,6 +61,7 @@ export default function AnimeCard({
         {/* Quick Play Hover Button (mouse devices) */}
         <div className="card-quick-play">
           <button
+            type="button"
             className="card-quick-play-btn"
             onClick={(e) => {
               e.stopPropagation();
@@ -74,7 +70,7 @@ export default function AnimeCard({
             title="Play Episode 1"
             aria-label={`Play ${title} episode 1`}
           >
-            <Play size={20} fill="currentColor" style={{ marginLeft: '2px' }} />
+            <Play size={19} fill="currentColor" style={{ marginLeft: '2px' }} />
           </button>
         </div>
 
@@ -88,19 +84,19 @@ export default function AnimeCard({
           }}
           aria-label={`Play ${title} episode 1`}
         >
-          <Play size={16} fill="currentColor" style={{ marginLeft: '2px' }} />
+          <Play size={15} fill="currentColor" style={{ marginLeft: '2px' }} />
         </button>
       </div>
 
       <div className="card-body">
-        <h4 className="card-title" title={title}>
-          {title}
-        </h4>
+        <h4 className="card-title" title={title}>{title}</h4>
         <div className="card-meta">
           <span>{anime.episodes ? `${anime.episodes} Ep` : 'Ongoing'}</span>
-          <span>{anime.genres?.[0] || 'Anime'}</span>
+          {anime.genres?.[0] && <span>{anime.genres[0]}</span>}
         </div>
       </div>
     </div>
   );
 }
+
+export default React.memo(AnimeCard);

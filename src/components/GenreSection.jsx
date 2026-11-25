@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { ALL_GENRES, getAnimeByGenre } from '../services/api';
 import AnimeCard from './AnimeCard';
+import SectionHeader from './SectionHeader';
+import CarouselRow, { CardRowSkeleton } from './CarouselRow';
 import { Layers } from 'lucide-react';
 
 export default function GenreSection({ onWatch, onViewDetails }) {
   const [selectedGenre, setSelectedGenre] = useState('Action');
   const [animeList, setAnimeList] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -24,23 +26,21 @@ export default function GenreSection({ onWatch, onViewDetails }) {
   }, [selectedGenre]);
 
   return (
-    <div className="section-wrapper">
-      <div className="section-header">
-        <div className="section-title-group">
-          <div className="section-indicator" />
-          <h2 className="section-title">Watch By Genre</h2>
-        </div>
-        <div className="section-subtitle hide-on-mobile">
-          <Layers size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-          Explore top picks by themes
-        </div>
-      </div>
+    <section className="section-wrapper">
+      <SectionHeader
+        title="Browse by Genre"
+        icon={Layers}
+        subtitle={`Top picks in ${selectedGenre}`}
+      />
 
-      {/* Genre Pills */}
-      <div className="genre-pills-wrap">
+      {/* Horizontal Genre Filter Strip */}
+      <div className="genre-pills-wrap" role="tablist" aria-label="Anime genres">
         {ALL_GENRES.map((genre) => (
           <button
             key={genre}
+            type="button"
+            role="tab"
+            aria-selected={selectedGenre === genre}
             className={`genre-pill ${selectedGenre === genre ? 'active' : ''}`}
             onClick={() => setSelectedGenre(genre)}
           >
@@ -49,23 +49,23 @@ export default function GenreSection({ onWatch, onViewDetails }) {
         ))}
       </div>
 
-      {/* Carousel or Grid */}
-      {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
-          <div className="player-spinner" />
-        </div>
+      {/* Show skeleton on first load; keep existing row subtly dimmed while switching genres to avoid layout jump */}
+      {loading && animeList.length === 0 ? (
+        <CardRowSkeleton />
       ) : (
-        <div className="carousel-row">
-          {animeList.map(anime => (
-            <AnimeCard 
-              key={anime.id} 
-              anime={anime} 
-              onWatch={onWatch} 
-              onViewDetails={onViewDetails} 
-            />
-          ))}
+        <div className={`carousel-fade-wrap ${loading ? 'is-loading' : ''}`}>
+          <CarouselRow label={`${selectedGenre} Anime`}>
+            {animeList.map(anime => (
+              <AnimeCard
+                key={anime.id}
+                anime={anime}
+                onWatch={onWatch}
+                onViewDetails={onViewDetails}
+              />
+            ))}
+          </CarouselRow>
         </div>
       )}
-    </div>
+    </section>
   );
 }
