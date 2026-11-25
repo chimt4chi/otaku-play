@@ -4528,3 +4528,131 @@ body {
   max-width: 100%;
   overflow-x: clip;
 }
+
+/* ==========================================================================
+   TV mode (10-foot UI, D-pad). A 1080p TV is a 960x540 CSS viewport.
+   ========================================================================== */
+.tv-mode {
+  scroll-padding: 90px 0 40px;
+}
+
+.tv-mode *:focus {
+  outline: 3px solid var(--accent-color) !important;
+  outline-offset: 3px;
+}
+
+.tv-mode .anime-card,
+.tv-mode .continue-card,
+.tv-mode .season-tab-card,
+.tv-mode button,
+.tv-mode a {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tv-mode .anime-card:focus,
+.tv-mode .continue-card:focus,
+.tv-mode .season-tab-card:focus {
+  transform: scale(1.07);
+  box-shadow: 0 0 28px var(--accent-glow);
+  position: relative;
+  z-index: 5;
+}
+
+.tv-mode button:focus {
+  transform: scale(1.06);
+}
+
+/* Blur is expensive on TV GPUs */
+.tv-mode * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Phone / web-only chrome */
+.tv-mode .mobile-bottom-nav,
+.tv-mode .app-footer,
+.tv-mode .apk-nav-badge,
+.tv-mode .search-shortcut-badge,
+.tv-mode .player-theater-btn {
+  display: none !important;
+}
+
+.tv-player-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+}
+
+.tv-mode .tv-player-layer:focus {
+  outline: none !important;
+}
+
+.tv-hud {
+  width: 100%;
+  padding: 3rem 2.5rem 1.5rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.tv-hud.visible {
+  opacity: 1;
+}
+
+.tv-hud-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-bottom: 0.6rem;
+}
+
+.tv-hud-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.tv-hud-track {
+  flex: 1;
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+}
+
+.tv-hud-track > div {
+  height: 100%;
+  background: var(--accent-color);
+}
+
+.tv-hud-hint {
+  margin-top: 0.6rem;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* Opaque enough to cover the embedded player's own control bar underneath */
+.tv-mode .tv-hud {
+  background: linear-gradient(transparent, #000 40%);
+}
+
+/* Room for the zoomed, focused card inside horizontal rows */
+.tv-mode .carousel-row {
+  padding-block: 16px;
+}
+
+/* TV player page: video plus episode list side by side */
+.tv-mode .player-page-container {
+  grid-template-columns: minmax(0, 1fr) 300px;
+}
+
+/* The card itself is the target on TV; its inner quick-play button only stole focus */
+.tv-mode .card-quick-play {
+  display: none !important;
+}

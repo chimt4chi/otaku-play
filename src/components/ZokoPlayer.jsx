@@ -36,6 +36,8 @@ import DownloadModal from './DownloadModal';
 import WatchPartyDrawer from './WatchPartyDrawer';
 import { setNativeFullscreen, setKeepAwake, isNativeApp } from '../services/nativePlayer';
 import { useBackHandler } from '../services/backStack';
+import { isTv } from '../services/tv';
+import TvPlayerControls from './TvPlayerControls';
 
 // Helper for vendor-prefixed fullscreen checks
 const isFullscreenElement = (element) => {
@@ -63,6 +65,9 @@ const exitDocFullscreen = () => {
   if (document.msExitFullscreen) return document.msExitFullscreen();
   return Promise.reject();
 };
+
+// The Android app (phone or TV) draws fullscreen as an overlay instead of the Fullscreen API
+const usesOverlayFullscreen = () => isNativeApp || isTv();
 
 export default function ZokoPlayer({
   anime,
@@ -394,7 +399,7 @@ export default function ZokoPlayer({
         case 'ready':
           setPlayerLoading(false);
           if (containerRef.current) {
-            if (isNativeApp) {
+            if (usesOverlayFullscreen()) {
               sendPlayerMessage({ type: 'fullscreen', active: isNativeFullscreenRef.current });
             } else {
               const isFull = isFullscreenElement(containerRef.current);
@@ -437,7 +442,7 @@ export default function ZokoPlayer({
           break;
 
         case 'fullscreen':
-          if (isNativeApp) {
+          if (usesOverlayFullscreen()) {
             if (msg.request === 'enter') changeNativeFullscreen(true);
             else if (msg.request === 'exit') changeNativeFullscreen(false);
           } else if (containerRef.current) {
@@ -494,8 +499,13 @@ export default function ZokoPlayer({
   }, [currentAnime, currentEpisode, totalEpisodes, autoNext, reportProgress, getNextSeason, triggerAutoNextCountdown, sendPlayerMessage, showToast, changeNativeFullscreen]);
 
   useEffect(() => {
-    isNativeFullscreenRef.current = isNativeApp && isFullscreen;
+    isNativeFullscreenRef.current = usesOverlayFullscreen() && isFullscreen;
   }, [isFullscreen]);
+
+  // TV: playback starts fullscreen, and picking another episode returns to it
+  useEffect(() => {
+    if (isTv()) changeNativeFullscreen(true);
+  }, [currentEpisode, currentAnime?.id, changeNativeFullscreen]);
 
   // Keep the screen on while watching; always restore system bars and orientation on exit
   useEffect(() => {
@@ -507,7 +517,7 @@ export default function ZokoPlayer({
   }, []);
 
   // Android back button: close the topmost overlay first (fullscreen, then download / party)
-  useBackHandler(isNativeApp && isFullscreen, () => changeNativeFullscreen(false));
+  useBackHandler(usesOverlayFullscreen() && isFullscreen, () => changeNativeFullscreen(false));
   useBackHandler(isDownloadOpen, () => setIsDownloadOpen(false));
   useBackHandler(Boolean(partyState?.active && isPartyDrawerOpen), () => setIsPartyDrawerOpen(false));
 
@@ -628,7 +638,7 @@ export default function ZokoPlayer({
   };
 
   const handleToggleFullscreen = () => {
-    if (isNativeApp) {
+    if (usesOverlayFullscreen()) {
       changeNativeFullscreen(!isNativeFullscreenRef.current);
       return;
     }
@@ -761,7 +771,7 @@ export default function ZokoPlayer({
         </div>
 
         {/* Video Player Frame Container */}
-        <div className={`video-frame-container ${isNativeApp && isFullscreen ? 'native-fs' : ''}`} ref={containerRef} id="player-wrap">
+        <div className={`video-frame-container ${usesOverlayFullscreen() && isFullscreen ? 'native-fs' : ''}`} ref={containerRef} id="player-wrap">
           {/* Floating Emoji Reactions Overlay */}
           {floatingReactions.length > 0 && (
             <div className="party-floating-reactions-overlay">
@@ -843,7 +853,19 @@ export default function ZokoPlayer({
             loading="eager"
             referrerPolicy="origin"
             onLoad={() => setPlayerLoading(false)}
+            tabIndex={isTv() ? -1 : undefined}
           />
+
+          {isTv() && isFullscreen && (
+            <TvPlayerControls
+              title={title}
+              episode={currentEpisode}
+              send={sendPlayerMessage}
+              onNext={handleNextEpisode}
+              onPrevious={handlePrevEpisode}
+              onShowEpisodes={() => changeNativeFullscreen(false)}
+            />
+          )}
         </div>
 
         {/* Player Controls Toolbar */}

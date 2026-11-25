@@ -25,6 +25,9 @@ import { watchPartyService } from './services/watchPartyService';
 import { getAnimeDetails } from './services/api';
 import { handleBackPress, useBackHandler } from './services/backStack';
 import OfflineBanner from './components/OfflineBanner';
+import TvSideNav from './tv/TvSideNav';
+import TvHomeView from './tv/TvHomeView';
+import { isTv } from './services/tv';
 
 // Everything except the home screen is split out of the initial bundle
 const GenresView = lazy(() => import('./views/GenresView'));
@@ -404,9 +407,26 @@ export default function App() {
         onOpenPartyModal={() => setIsWatchPartyModalOpen(true)}
       />
 
+      {isTv() && currentView !== 'player' && (
+        <TvSideNav
+          currentView={currentView}
+          setCurrentView={setCurrentView}
+          onOpenSearch={() => setIsSearchOpen(true)}
+          onOpenPartyModal={() => setIsWatchPartyModalOpen(true)}
+        />
+      )}
+
       {/* Main Content Router */}
       <main className="main-content">
-        {currentView === 'home' && (
+        {currentView === 'home' && isTv() && (
+          <TvHomeView
+            continueWatchingList={continueWatchingList}
+            onResumeWatching={handleResumeWatching}
+            onViewDetails={(a) => setDetailAnime(a)}
+          />
+        )}
+
+        {currentView === 'home' && !isTv() && (
           <HomeView
             continueWatchingList={continueWatchingList}
             onResumeWatching={handleResumeWatching}

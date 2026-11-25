@@ -16,4 +16,10 @@ export function setKeepAwake(enabled) {
   return PlayerNative.setKeepAwake({ enabled }).catch(() => {});
 }
 
+/** True on Android TV / Google TV. Always false on the web. */
+export function queryIsTv() {
+  if (!isNative) return Promise.resolve(false);
+  return PlayerNative.getDeviceInfo().then(r => Boolean(r?.isTv)).catch(() => false);
+}
+
 export const isNativeApp = isNative;

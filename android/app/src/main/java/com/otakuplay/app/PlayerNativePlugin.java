@@ -1,6 +1,10 @@
 package com.otakuplay.app;
 
+import android.app.UiModeManager;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.view.Window;
 import android.view.WindowManager;
 import androidx.core.view.WindowCompat;
@@ -22,6 +26,20 @@ public class PlayerNativePlugin extends Plugin {
 
     private boolean keepAwakeRequested = false;
     private boolean fullscreen = false;
+
+    @PluginMethod
+    public void getDeviceInfo(PluginCall call) {
+        UiModeManager uiMode = (UiModeManager) getContext().getSystemService(Context.UI_MODE_SERVICE);
+        boolean isTv = (uiMode != null && uiMode.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION)
+            || getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK);
+        if (isTv) {
+            // Remote key presses only reach the page while the WebView holds focus
+            getActivity().runOnUiThread(() -> getBridge().getWebView().requestFocus());
+        }
+        JSObject ret = new JSObject();
+        ret.put("isTv", isTv);
+        call.resolve(ret);
+    }
 
     @PluginMethod
     public void setFullscreen(PluginCall call) {
