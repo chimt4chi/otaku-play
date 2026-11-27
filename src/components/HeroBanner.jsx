@@ -12,7 +12,18 @@ export default function HeroBanner({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const touchStartRef = useRef(null);
+  const heroRef = useRef(null);
+  const [onScreen, setOnScreen] = useState(true);
   const count = featuredList.length;
+
+  // Don't swap large banners (decode + repaint) while the hero is scrolled out of view
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return undefined;
+    const observer = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [count]);
 
   // Auto-advance & preload next slide image for zero-flicker transitions
   useEffect(() => {
@@ -24,12 +35,12 @@ export default function HeroBanner({
       preload.src = nextImg;
     }
 
-    if (paused) return;
+    if (paused || !onScreen) return;
     const timer = setTimeout(() => {
       setCurrentIndex(prev => (prev + 1) % count);
     }, AUTOPLAY_MS);
     return () => clearTimeout(timer);
-  }, [count, currentIndex, paused, featuredList]);
+  }, [count, currentIndex, paused, onScreen, featuredList]);
 
   if (!count) return null;
 
@@ -73,6 +84,7 @@ export default function HeroBanner({
 
   return (
     <section
+      ref={heroRef}
       className="hero-container"
       aria-label="Featured Anime"
       onTouchStart={handleTouchStart}

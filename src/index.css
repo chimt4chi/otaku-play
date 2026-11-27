@@ -5213,3 +5213,39 @@ body {
     order: 4;
   }
 }
+
+/* ==========================================================================
+   Touch devices: scrolling performance in the Android WebView
+   ========================================================================== */
+@media (hover: none) and (pointer: coarse) {
+  /* Live blur is re-rendered on every scrolled frame: the main source of stutter */
+  *,
+  *::before,
+  *::after {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Solid bars replace the frosted ones so text stays readable without blur */
+  .navbar,
+  .mobile-bottom-nav {
+    background: var(--bg-main);
+  }
+
+  /* Native momentum scrolling: forced snapping and smooth-scroll fight the finger */
+  .carousel-row {
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+  }
+
+  /* Skipped sections were re-measured while scrolling, which made the page jump */
+  .section-wrapper {
+    content-visibility: visible;
+  }
+
+  /* Hover lifts stick after a tap on touch screens */
+  .btn-primary:hover,
+  .btn-secondary:hover {
+    transform: none;
+  }
+}
