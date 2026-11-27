@@ -103,7 +103,7 @@ export default function WatchPartyModal({
             </div>
             <div>
               <div className="ota-badge-pill" style={{ color: 'var(--accent-color)' }}>
-                Real-Time WebRTC P2P
+                Watch Together
               </div>
               <h3 id="watch-party-title" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: '0.1rem 0 0' }}>
                 Anime Watch Party
@@ -301,7 +301,7 @@ export default function WatchPartyModal({
         <div className="ota-modal-footer" style={{ borderTop: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-dim)' }}>
             <ShieldCheck size={14} color="var(--accent-color)" />
-            <span>P2P Encrypted • No Account Needed</span>
+            <span>Private Room • No Account Needed</span>
           </div>
           <span style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>v{CURRENT_APP_VERSION}</span>
         </div>

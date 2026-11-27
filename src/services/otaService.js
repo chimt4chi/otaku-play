@@ -130,9 +130,9 @@ export async function checkForAppUpdate(force = false) {
 
     if (!res.ok) {
       if (res.status === 404) {
-        return { hasUpdate: false, message: 'No releases found on GitHub' };
+        return { hasUpdate: false, message: 'No updates found' };
       }
-      throw new Error(`GitHub API error HTTP ${res.status}`);
+      throw new Error(`Update check failed (HTTP ${res.status})`);
     }
 
     const release = await res.json();

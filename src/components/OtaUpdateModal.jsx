@@ -349,7 +349,7 @@ export default function OtaUpdateModal({ updateInfo, onClose, onUpdateComplete }
                   style={{ padding: '0.55rem 1.2rem', fontSize: '0.82rem' }}
                 >
                   <ExternalLink size={14} />
-                  <span>Manual Download (GitHub)</span>
+                  <span>Download Manually</span>
                 </a>
               </div>
             </div>
@@ -397,20 +397,6 @@ export default function OtaUpdateModal({ updateInfo, onClose, onUpdateComplete }
         </div>
         </div>
 
-        {/* Pinned footer */}
-        {updateInfo.releaseUrl && (
-          <div className="ota-modal-footer">
-            <a
-              href={updateInfo.releaseUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ota-github-link"
-            >
-              <span>View release notes on GitHub</span>
-              <ExternalLink size={12} />
-            </a>
-          </div>
-        )}
       </div>
     </div>
   );

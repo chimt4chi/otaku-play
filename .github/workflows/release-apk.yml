@@ -97,7 +97,7 @@ jobs:
           body: |
             ## 📱 OtakuPlay ${{ steps.prepare.outputs.tag }}
             
-            ${{ github.event.inputs.release_notes || 'Official Android release of OtakuPlay with multi-server streaming, adaptive HLS playback, and in-app updates.' }}
+            ${{ github.event.inputs.release_notes || 'Official Android release of OtakuPlay with performance and stability improvements.' }}
             
             ### 📦 Direct Downloads
             - **Download APK**: [${{ steps.prepare.outputs.apk_name }}](https://github.com/${{ github.repository }}/releases/download/${{ steps.prepare.outputs.tag }}/${{ steps.prepare.outputs.apk_name }})

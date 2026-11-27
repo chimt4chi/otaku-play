@@ -586,7 +586,7 @@ export default function App() {
               <span className="footer-version-pill">v{CURRENT_APP_VERSION}</span>
             </div>
             <p className="footer-tagline">
-              Adaptive HLS anime streaming with Watch Party sync & offline episode shortcuts.
+              Watch anime together, track your progress and save your favourite episodes.
             </p>
           </div>
 

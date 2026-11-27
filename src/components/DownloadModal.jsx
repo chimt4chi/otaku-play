@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { ListPlus, X, Check, Copy, ExternalLink, Info, Trash2 } from 'lucide-react';
+import { ListPlus, X, Check, Copy, Info, Trash2 } from 'lucide-react';
 import { saveDownload, removeDownload, isEpisodeDownloaded } from '../services/storage';
-import { resolveEpisodeCount } from '../services/api';
+import { resolveEpisodeCount, getPublicBaseUrl } from '../services/api';
 
 // Saves a shortcut to one episode (with the chosen audio/sub track). The video itself is
 // streamed from the player each time; nothing is stored on the device.
@@ -32,7 +32,7 @@ export default function DownloadModal({
 
   const handleCopyLink = () => {
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(streamUrl);
+      navigator.clipboard.writeText(`${getPublicBaseUrl()}/?watch=${anime.id}&ep=${currentEpisode}`);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     }
@@ -157,19 +157,9 @@ export default function DownloadModal({
                 style={{ flex: 1, justifyContent: 'center', fontSize: '0.8rem', padding: '0.5rem' }}
               >
                 {copied ? <Check size={14} color="var(--accent-color)" /> : <Copy size={14} />}
-                <span>{copied ? 'Stream Link Copied!' : 'Copy Stream Link'}</span>
+                <span>{copied ? 'Link Copied!' : 'Copy Link'}</span>
               </button>
 
-              <a
-                href={streamUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-secondary"
-                style={{ flex: 1, justifyContent: 'center', fontSize: '0.8rem', padding: '0.5rem' }}
-              >
-                <ExternalLink size={14} />
-                <span>Open in Player</span>
-              </a>
             </div>
           </div>
 

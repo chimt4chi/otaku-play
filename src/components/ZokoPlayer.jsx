@@ -12,7 +12,6 @@ import {
   Check,
   ArrowLeft,
   Server,
-  Radio,
   Sparkles,
   Info,
   Clock,
@@ -465,7 +464,7 @@ export default function ZokoPlayer({
           break;
 
         case 'error':
-          showToast(`Stream note: ${msg.message || 'Connecting to mirror stream...'}`);
+          showToast('Playback hiccup, retrying...');
           break;
 
         default:
@@ -599,14 +598,7 @@ export default function ZokoPlayer({
     setServer(newServer);
     setPlayerLoading(true);
     savePlayerConfig({ preferredServer: newServer });
-    showToast(`Switched to ${newServer === 'zoko' ? 'Zoko HLS Engine' : 'Kiwi Mirror'}`);
-  };
-
-  const handleSourceChange = (newSource) => {
-    if (newSource === source) return;
-    setSource(newSource);
-    setPlayerLoading(true);
-    showToast(`Source ID set to ${newSource.toUpperCase()}`);
+    showToast(`Switched to ${newServer === 'zoko' ? 'Server 1' : 'Server 2'}`);
   };
 
   const handleToggleAutoSkip = () => {
@@ -667,7 +659,7 @@ export default function ZokoPlayer({
       }).catch(() => {});
     } else if (navigator.clipboard) {
       navigator.clipboard.writeText(shareUrl);
-      showToast('Stream link copied to clipboard!');
+      showToast('Link copied!');
     }
   };
 
@@ -749,7 +741,7 @@ export default function ZokoPlayer({
             <button
               className="player-action-btn"
               onClick={handleShare}
-              title="Share stream link"
+              title="Share"
               aria-label="Share"
             >
               <Share2 size={15} />
@@ -800,7 +792,7 @@ export default function ZokoPlayer({
             <div className="player-loading-overlay">
               <div className="player-spinner" />
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                Connecting to {server === 'zoko' ? 'ZokoAnime Adaptive HLS Engine' : 'Kiwi Stream Mirror'}...
+                Loading episode...
               </div>
             </div>
           )}
@@ -947,45 +939,20 @@ export default function ZokoPlayer({
                 <button
                   className={`segmented-btn ${server === 'zoko' ? 'active' : ''}`}
                   onClick={() => handleServerChange('zoko')}
-                  title="Zoko HLS Adaptive Stream"
+                  title="Server 1"
                 >
-                  Zoko HLS
+                  Server 1
                 </button>
                 <button
                   className={`segmented-btn ${server === 'kiwi' ? 'active' : ''}`}
                   onClick={() => handleServerChange('kiwi')}
-                  title="Kiwi Mirror Stream Server"
+                  title="Server 2"
                 >
-                  Kiwi
+                  Server 2
                 </button>
               </div>
             </div>
 
-            {/* Metadata Source ID (AniList vs MAL) */}
-            {hasMalId && (
-              <div className="control-group">
-                <div className="control-group-label" title="Metadata Provider">
-                  <Radio size={13} />
-                  <span>Source</span>
-                </div>
-                <div className="segmented-control">
-                  <button
-                    className={`segmented-btn ${source === 'ani' ? 'active' : ''}`}
-                    onClick={() => handleSourceChange('ani')}
-                    title={`AniList ID: ${currentAnime.id}`}
-                  >
-                    AniList
-                  </button>
-                  <button
-                    className={`segmented-btn ${source === 'mal' ? 'active' : ''}`}
-                    onClick={() => handleSourceChange('mal')}
-                    title={`MAL ID: ${currentAnime.idMal}`}
-                  >
-                    MAL
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Right Controls: Quick Navigation, Auto-Skip, Auto-Next & Display Mode */}
@@ -1534,10 +1501,6 @@ export default function ZokoPlayer({
             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.35rem' }}>
               <span style={{ color: 'var(--text-dim)' }}>Studio</span>
               <span style={{ fontWeight: 600 }}>{detailsData?.studios?.nodes?.[0]?.name || currentAnime.studios?.nodes?.[0]?.name || 'Animation Studio'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-dim)' }}>Engine</span>
-              <span style={{ fontWeight: 600, color: 'var(--accent-color)' }}>{server === 'zoko' ? 'Zoko Adaptive HLS' : 'Kiwi Mirror'}</span>
             </div>
           </div>
         </div>
